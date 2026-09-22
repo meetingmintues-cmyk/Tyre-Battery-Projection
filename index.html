@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AM Motors — Tyre &amp; Battery Procurement Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --navy:#0F1F3D; --navy-2:#16274A; --navy-3:#1E3358; --white:#FFFFFF;
+  --emerald:#0E7C5A; --emerald-soft:#E4F5EE; --royal:#2A54A6; --royal-soft:#EAF0FB;
+  --grey:#6B7280; --grey-line:#E3E6EC; --grey-bg:#F5F6F8;
+  --amber:#B9790A; --amber-soft:#FCF1DA; --red:#B23A2E; --red-soft:#FBEAE8;
+  --font-display:'Iowan Old Style','Georgia','Times New Roman',serif;
+  --font-body:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  --font-mono:'SF Mono','JetBrains Mono','Consolas','Menlo',monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0; background:var(--grey-bg); color:var(--navy); font-family:var(--font-body); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;}
+::selection{background:var(--emerald); color:#fff;}
+
+header.top{position:sticky; top:0; z-index:50; background:var(--navy); color:#fff; border-bottom:3px solid var(--emerald);}
+.top-inner{max-width:1360px; margin:0 auto; padding:14px 28px 0 28px;}
+.top-row{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px;}
+.brand{display:flex; align-items:center; gap:12px;}
+.brand-mark{width:32px; height:32px; border-radius:50%; border:3px solid #fff; flex:none;
+  background:radial-gradient(circle at center, var(--navy) 0 4px, transparent 4.5px),
+  conic-gradient(#fff 0 8deg, transparent 8deg 37deg, #fff 37deg 45deg, transparent 45deg 74deg,#fff 74deg 82deg, transparent 82deg 111deg,#fff 111deg 119deg, transparent 119deg 148deg,#fff 148deg 156deg, transparent 156deg 185deg,#fff 185deg 193deg, transparent 193deg 222deg,#fff 222deg 230deg, transparent 230deg 259deg,#fff 259deg 267deg, transparent 267deg 296deg,#fff 296deg 304deg, transparent 304deg 333deg,#fff 333deg 341deg, transparent 341deg 360deg);}
+.brand h1{font-family:var(--font-display); font-weight:700; font-size:19px; margin:0;}
+.brand p{margin:2px 0 0; font-size:11px; color:#B7C2DA; letter-spacing:.3px;}
+.top-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+nav.tabs{display:flex; gap:2px; margin-top:12px; flex-wrap:wrap;}
+nav.tabs button{background:none; border:none; color:#B7C2DA; font-size:12.5px; font-weight:600; padding:9px 14px; cursor:pointer; border-bottom:3px solid transparent; transition:all .15s ease; white-space:nowrap;}
+nav.tabs button:hover{color:#fff;}
+nav.tabs button.active{color:#fff; border-bottom-color:var(--emerald);}
+
+main{max-width:1360px; margin:0 auto; padding:26px 28px;}
+section.view{display:none;}
+section.view.active{display:block; animation:fade .2s ease;}
+@keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+h2.section-title{font-family:var(--font-display); font-size:21px; margin:0 0 4px; color:var(--navy); font-weight:700;}
+p.section-sub{margin:0 0 18px; color:var(--grey); font-size:12.8px;}
+
+.kpi-grid{display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:22px;}
+@media (max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+@media (max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+.kpi{background:#fff; border:1px solid var(--grey-line); border-radius:8px; padding:13px 15px; border-top:3px solid var(--royal); cursor:pointer; transition:transform .15s ease, box-shadow .15s ease;}
+.kpi:hover{transform:translateY(-3px); box-shadow:0 6px 18px rgba(15,31,61,0.14);}
+.kpi.emerald{border-top-color:var(--emerald);}
+.kpi.amber{border-top-color:var(--amber);}
+.kpi .label{font-size:10px; text-transform:uppercase; letter-spacing:.4px; color:var(--grey); font-weight:700;}
+.kpi .value{font-family:var(--font-mono); font-size:20px; font-weight:700; color:var(--navy); margin-top:5px;}
+.kpi .goto{font-size:10px; font-weight:700; color:var(--royal); margin-top:6px;}
+
+.panel{background:#fff; border:1px solid var(--grey-line); border-radius:10px; padding:19px 21px; margin-bottom:20px;}
+.panel h3{font-family:var(--font-display); font-size:15.5px; margin:0 0 13px; color:var(--navy);}
+
+.gap-banner{background:var(--amber-soft); border:1px solid #E8CE99; border-left:4px solid var(--amber); border-radius:8px; padding:15px 17px; margin-bottom:22px;}
+.gap-banner h4{margin:0 0 7px; font-size:12.5px; color:#7A530A; text-transform:uppercase; letter-spacing:.4px;}
+.gap-banner ul{margin:0; padding-left:18px; color:#5C4106; font-size:12.5px; line-height:1.6;}
+
+.insight-list{margin:0; padding-left:0; list-style:none; display:flex; flex-direction:column; gap:10px;}
+.insight-list li{display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.55; padding:10px 12px; background:var(--grey-bg); border-radius:8px; border-left:3px solid var(--royal);}
+.insight-list li.good{border-left-color:var(--emerald);}
+.insight-list li.warn{border-left-color:var(--amber);}
+.insight-list li.bad{border-left-color:var(--red);}
+.insight-list .itag{flex:none; font-size:9.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px; padding:3px 7px; border-radius:20px; background:var(--royal-soft); color:var(--royal); margin-top:1px;}
+.insight-list li.good .itag{background:var(--emerald-soft); color:var(--emerald);}
+.insight-list li.warn .itag{background:var(--amber-soft); color:#8a5c07;}
+.insight-list li.bad .itag{background:var(--red-soft); color:var(--red);}
+
+.verdict-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px;}
+@media (max-width:900px){.verdict-grid{grid-template-columns:repeat(2,1fr);}}
+.vcard{border-radius:8px; padding:13px 15px; border:1px solid var(--grey-line);}
+.vcard .name{font-weight:700; font-size:13.5px;}
+.vcard .score{font-family:var(--font-mono); font-size:24px; font-weight:700; margin:5px 0 4px;}
+.vcard .verdict{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; padding:3px 8px; border-radius:20px; display:inline-block;}
+.v-increase{background:var(--emerald-soft); color:var(--emerald);}
+.v-maintain{background:var(--royal-soft); color:var(--royal);}
+.v-reduce{background:var(--amber-soft); color:#8a5c07;}
+.v-avoid{background:var(--red-soft); color:var(--red);}
+.mini-track{background:var(--grey-bg); border-radius:4px; height:7px; overflow:hidden; display:flex; margin-top:9px;}
+.mini-seg{height:100%;}
+.score-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--grey); margin-bottom:15px;}
+.score-legend span{display:inline-flex; align-items:center; gap:5px;}
+.score-legend i{width:9px; height:9px; border-radius:2px; display:inline-block;}
+
+.stackchart{display:flex; flex-direction:column; gap:11px;}
+.stack-row{display:grid; grid-template-columns:110px 1fr 50px; align-items:center; gap:10px;}
+.stack-row .lbl{font-size:12.5px; font-weight:700;}
+.stack-track{background:var(--grey-bg); border-radius:5px; height:17px; overflow:hidden; display:flex;}
+.stack-seg{height:100%;}
+.stack-row .val{font-family:var(--font-mono); font-size:12.5px; text-align:right; color:var(--grey); font-weight:700;}
+
+table{width:100%; border-collapse:collapse; font-size:12.6px;}
+th{text-align:left; background:var(--navy); color:#fff; font-weight:600; font-size:10.8px; text-transform:uppercase; letter-spacing:.3px; padding:9px 10px; position:sticky; top:0; cursor:pointer; user-select:none;}
+th:hover{background:var(--navy-3);}
+th.num, td.num{text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+td{padding:8px 10px; border-bottom:1px solid var(--grey-line); vertical-align:top;}
+tbody tr:nth-child(even){background:#FAFBFC;}
+tbody tr:hover{background:var(--royal-soft);}
+.table-wrap{max-height:560px; overflow:auto; border:1px solid var(--grey-line); border-radius:8px;}
+.pill{font-size:10.2px; font-weight:700; padding:2px 8px; border-radius:20px; display:inline-block; white-space:nowrap;}
+.pill-high{background:var(--emerald-soft); color:var(--emerald);}
+.pill-medium{background:var(--royal-soft); color:var(--royal);}
+.pill-low{background:var(--amber-soft); color:#8a5c07;}
+.pill-none{background:var(--red-soft); color:var(--red);}
+.pill-fast{background:var(--emerald-soft); color:var(--emerald);}
+.pill-moderate{background:var(--royal-soft); color:var(--royal);}
+.pill-slow{background:var(--amber-soft); color:#8a5c07;}
+.pill-dead{background:var(--red-soft); color:var(--red);}
+.pill-up{background:var(--red-soft); color:var(--red);}
+.pill-down{background:var(--emerald-soft); color:var(--emerald);}
+.pill-flat{background:var(--grey-bg); color:var(--grey);}
+
+.filter-row{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center;}
+.filter-row input[type=text]{padding:8px 12px; border:1px solid var(--grey-line); border-radius:6px; font-size:13px; min-width:220px; font-family:var(--font-body);}
+.chip{border:1px solid var(--grey-line); background:#fff; color:var(--navy); padding:7px 13px; border-radius:20px; font-size:12px; font-weight:600; cursor:pointer; transition:all .15s;}
+.chip.active{background:var(--navy); color:#fff; border-color:var(--navy);}
+.chip:hover:not(.active){border-color:var(--navy);}
+.result-count{margin-left:auto; font-size:12px; color:var(--grey);}
+
+.input-group{margin-bottom:0;}
+.input-group label{display:block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; color:var(--grey); margin-bottom:6px;}
+.input-group select{width:100%; padding:9px 12px; border:1px solid var(--grey-line); border-radius:6px; font-size:13.5px; font-family:var(--font-body); color:var(--navy); background:var(--grey-bg); cursor:pointer;}
+.input-group select:focus{outline:2px solid var(--royal); outline-offset:1px; background:#fff;}
+
+#mx-table td, #mx-table th{text-align:center; white-space:nowrap;}
+#mx-table td{font-size:14px; font-family:var(--font-mono); padding:9px 13px; font-variant-numeric:tabular-nums;}
+#mx-table td:first-child{font-family:var(--font-body); font-size:12.5px; white-space:normal;}
+#mx-table td:first-child, #mx-table th:first-child{text-align:left; position:sticky; left:0; background:#fff; z-index:2; box-shadow:2px 0 4px rgba(0,0,0,.04);}
+#mx-table th:first-child{background:var(--navy); z-index:3;}
+.mx-cell-best{background:#22C55E; color:#fff; font-weight:700;}
+.mx-cell-second{background:#FDE047; color:#78500A; font-weight:700;}
+.mx-cell-empty{color:#C7CCD6;}
+.low-price{color:var(--emerald); font-weight:700; background:var(--emerald-soft);}
+.mx-size-link{color:var(--navy); text-decoration:none; cursor:pointer; border-bottom:1px dashed var(--royal);}
+.mx-size-link:hover{color:var(--royal);}
+
+footer{max-width:1360px; margin:0 auto; padding:10px 28px 40px; color:var(--grey); font-size:11.2px;}
+
+.ptoggle{display:inline-flex; background:var(--grey-bg); border:1px solid var(--grey-line); border-radius:24px; padding:3px; gap:2px; flex:none;}
+.ptoggle-btn{border:none; background:none; padding:8px 18px; border-radius:20px; font-size:12.5px; font-weight:700; color:var(--grey); cursor:pointer; transition:all .15s ease; font-family:var(--font-body);}
+.ptoggle-btn.active{background:var(--navy); color:#fff;}
+.ptoggle-btn:hover:not(.active){color:var(--navy);}
+.ptoggle.dark{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.18);}
+.ptoggle.dark .ptoggle-btn{color:#B7C2DA;}
+.ptoggle.dark .ptoggle-btn.active{background:var(--emerald); color:#fff;}
+.ptoggle.dark .ptoggle-btn:hover:not(.active){color:#fff;}
+
+.upload-btn{display:inline-flex; align-items:center; gap:7px; background:var(--emerald); color:#fff; border:none; padding:9px 16px; border-radius:20px; font-size:12.5px; font-weight:700; cursor:pointer; font-family:var(--font-body);}
+.upload-btn:hover{background:#0a6b4d;}
+.data-status{font-size:10.5px; color:#B7C2DA;}
+.data-status b{color:#fff;}
+#file-input{display:none;}
+.toast{position:fixed; top:18px; right:18px; z-index:200; background:var(--navy); color:#fff; padding:13px 18px; border-radius:8px; font-size:13px; box-shadow:0 8px 24px rgba(0,0,0,.25); border-left:4px solid var(--emerald); max-width:340px; opacity:0; transform:translateY(-8px); transition:all .25s ease; pointer-events:none;}
+.toast.show{opacity:1; transform:translateY(0);}
+.toast.error{border-left-color:var(--red);}
+.basis-note{font-size:11.5px; color:var(--grey); font-style:italic; margin-top:12px;}
+.working-principle{background:var(--royal-soft); border:1px solid #C7D6F0; border-left:4px solid var(--royal); border-radius:8px; padding:12px 16px; font-size:12.5px; color:var(--navy); line-height:1.6;}
+.note{font-size:11.2px; color:var(--grey); font-style:italic; margin-top:14px; line-height:1.5;}
+
+/* ---------------- trend chart ---------------- */
+.trend-chart-svg{width:100%; height:auto; display:block;}
+.trend-line{fill:none; stroke:var(--royal); stroke-width:2.5;}
+.trend-area{fill:var(--royal-soft); opacity:.5;}
+.trend-dot{fill:var(--royal); stroke:#fff; stroke-width:2;}
+.trend-dot:hover{fill:var(--emerald);}
+.trend-axis-text{font-family:var(--font-mono); font-size:10.5px; fill:var(--grey);}
+.trend-value-text{font-family:var(--font-mono); font-size:11px; fill:var(--navy); font-weight:700;}
+.trend-gridline{stroke:var(--grey-line); stroke-width:1;}
+.trend-empty{padding:30px 10px; text-align:center; color:var(--grey); font-size:13px;}
+.trend-up-seg{stroke:var(--red);}
+.trend-down-seg{stroke:var(--emerald);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <h1 id="app-title">AM Motors — Procurement Intelligence</h1>
+          <p>Internal decision-support · built from Tyre &amp; Battery Purchase workbook</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="ptoggle dark" id="basis-toggle">
+          <button class="ptoggle-btn active" data-basis="orig">Original Price</button>
+          <button class="ptoggle-btn" data-basis="latest">Latest Price <span id="latest-label-badge"></span></button>
+        </div>
+        <div class="ptoggle dark" id="global-toggle">
+          <button class="ptoggle-btn active" data-product="tyre">Tyre</button>
+          <button class="ptoggle-btn" data-product="battery">Battery</button>
+        </div>
+        <button class="upload-btn" id="upload-trigger">⭱ Upload Updated Excel</button>
+        <input type="file" id="file-input" accept=".xlsx,.xls">
+      </div>
+    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+      <nav class="tabs" id="tabs">
+        <button data-view="overview" class="active">Overview</button>
+        <button data-view="companies">Company Ranking</button>
+        <button data-view="sizes">Size Intelligence</button>
+        <button data-view="purchase">Purchase Plan</button>
+        <button data-view="pricewatch">Price Watch</button>
+        <button data-view="brandanalysis">Brand Analysis</button>
+        <button data-view="matrix">Size × Brand Matrix</button>
+        <button data-view="fitment">Vehicle Fitment</button>
+      </nav>
+      <div class="data-status" id="data-status">Source: <b>bundled workbook</b> · loaded once, on open</div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ OVERVIEW ============ -->
+  <section class="view active" id="view-overview">
+    <h2 class="section-title" id="overview-title">Procurement Decision Dashboard</h2>
+    <p class="section-sub" id="overview-sub"></p>
+
+    <div class="kpi-grid" id="kpi-grid"></div>
+
+    <div class="panel">
+      <h3>Key Insights — Auto-Generated Analysis</h3>
+      <p class="section-sub" style="margin-bottom:14px;">Recomputed live from whichever workbook and price basis is currently selected above.</p>
+      <ul class="insight-list" id="insight-list"></ul>
+    </div>
+
+    <div class="panel">
+      <h3 id="verdict-title">Procurement Verdict by Company</h3>
+      <p class="section-sub" style="margin-bottom:16px;">AI Purchase Score = 40% Margin + 40% Monthly Volume + 20% Profit/Unit (min-max normalised across brands present). Margin and profit/unit use the <b>yellow-highlighted "Total Margin incl. incentive"</b> columns from your workbook — the ones your own sheet already flags as the real decision numbers. Incentive slab % and incentive amount/unit are shown as their own columns, not folded into the score.</p>
+      <div class="verdict-grid" id="verdict-grid"></div>
+    </div>
+
+    <div class="gap-banner">
+      <h4>What's modelled vs. what would need more data</h4>
+      <ul>
+        <li><b>Modelled directly from your workbook</b> — per-SKU margin/profit (original and latest purchase price), company &amp; size ranking, fast/moderate/slow/dead-stock classification, purchase quantity + priority, size↔brand matrix, and full vehicle-model fitment (parsed from the Vehicle Model / Models Applicable column).</li>
+        <li><b>Not in this workbook</b> — branch/zone MSDC targets, live current stock, supplier lead times. Upload a workbook that includes those and this build won't parse them; ask me to extend the dashboard if you need that tab back.</li>
+        <li><b>Trailing period</b> — your sheet currently has sales logged for <b id="months-note-inline">—</b> month(s) (columns for the rest of the year are still blank). All "avg monthly" and movement-class figures are averaged over that many months, and update automatically as you fill in more months and re-upload.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ COMPANIES ============ -->
+  <section class="view" id="view-companies">
+    <h2 class="section-title" id="companies-title">Company-wise Procurement Strategy</h2>
+    <p class="section-sub">AI Purchase Score = 40% margin + 40% monthly volume + 20% profit/unit, min-max normalised across the brands present in the current workbook. Incentive slab % and incentive amount/unit are shown separately below, not scored.</p>
+
+    <div class="panel">
+      <h3>AI Purchase Score — Composition</h3>
+      <div class="score-legend">
+        <span><i style="background:var(--emerald)"></i>Margin (40%)</span>
+        <span><i style="background:var(--royal)"></i>Monthly Volume (40%)</span>
+        <span><i style="background:var(--grey)"></i>Profit/Unit (20%)</span>
+      </div>
+      <div class="stackchart" id="company-bars"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Full Metrics</h3>
+      <div class="table-wrap">
+        <table id="company-table">
+          <thead><tr>
+            <th data-key="name">Company</th>
+            <th data-key="units" class="num">Units (period)</th>
+            <th data-key="avgMonthly" class="num">Avg Monthly</th>
+            <th data-key="revenue" class="num">Revenue (₹)</th>
+            <th data-key="profit" class="num">Profit (₹)</th>
+            <th data-key="margin" class="num">Margin %</th>
+            <th data-key="profitPerUnit" class="num">Profit/Unit (₹)</th>
+            <th data-key="profitPerUnitRaw" class="num">Profit w/o Discount (₹)</th>
+            <th data-key="incentiveSlabPct" class="num">Incentive Slab %</th>
+            <th data-key="incentiveAmtPerUnit" class="num">Incentive Amt/Unit (₹)</th>
+            <th data-key="score" class="num">AI Score</th>
+            <th data-key="verdict">Recommendation</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIZES ============ -->
+  <section class="view" id="view-sizes">
+    <h2 class="section-title" id="sizes-title">Size Intelligence</h2>
+    <p class="section-sub" id="sizes-sub"></p>
+
+    <div class="panel">
+      <h3 style="margin-bottom:4px;">Best Brand By</h3>
+      <p class="section-sub" style="margin-bottom:14px;">Click a criterion — the Best Brand column below updates immediately.</p>
+      <div class="filter-row" style="margin-bottom:14px;" id="score-mode-buttons">
+        <button class="chip active" data-mode="overall">Overall</button>
+        <button class="chip" data-mode="margin">Margin</button>
+        <button class="chip" data-mode="volume">Unit of Sale</button>
+        <button class="chip" data-mode="profit">Profit Amount</button>
+        <button class="chip" data-mode="perunit">Per Unit Profit</button>
+      </div>
+      <div class="working-principle" id="working-principle"></div>
+    </div>
+
+    <div class="filter-row" id="size-filters">
+      <button class="chip active" data-cls="all">All</button>
+      <button class="chip" data-cls="Fast-Moving">Fast-Moving</button>
+      <button class="chip" data-cls="Moderate">Moderate</button>
+      <button class="chip" data-cls="Slow-Moving">Slow-Moving</button>
+      <button class="chip" data-cls="Dead Stock">Dead Stock</button>
+      <span class="result-count" id="size-count"></span>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table id="size-table">
+          <thead><tr>
+            <th data-key="size" id="size-col-header">Size</th>
+            <th data-key="units" class="num">Units (period)</th>
+            <th data-key="avgMonthly" class="num">Avg Monthly</th>
+            <th data-key="revenue" class="num">Revenue (₹)</th>
+            <th data-key="profit" class="num">Profit (₹)</th>
+            <th data-key="margin" class="num">Margin %</th>
+            <th data-key="cls">Movement Class</th>
+            <th data-key="currentBrands">Current Brands</th>
+            <th data-key="bestBrand">Top 2 Brands</th>
+            <th>Vehicle Models</th>
+            <th data-key="focus">Purchase Focus</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PURCHASE PLAN ============ -->
+  <section class="view" id="view-purchase">
+    <h2 class="section-title">Purchase Quantity Recommendation</h2>
+    <p class="section-sub" id="purchase-sub"></p>
+
+    <div class="filter-row" id="purchase-filters">
+      <input type="text" id="purchase-search" placeholder="Search company or size…">
+      <button class="chip active" data-p="all">All Priority</button>
+      <button class="chip" data-p="High">High</button>
+      <button class="chip" data-p="Medium">Medium</button>
+      <button class="chip" data-p="Low">Low</button>
+      <button class="chip" data-p="None">None</button>
+      <span class="result-count" id="purchase-count"></span>
+    </div>
+
+    <div class="panel" style="padding:0; overflow:hidden;">
+      <div class="table-wrap" style="border:none; border-radius:0;">
+        <table id="purchase-table">
+          <thead><tr>
+            <th data-key="company">Company</th>
+            <th data-key="size">Size</th>
+            <th data-key="price" class="num">Price (₹)</th>
+            <th data-key="margin" class="num">Margin %</th>
+            <th data-key="avgMonthly" class="num">Avg Monthly Units</th>
+            <th data-key="monthlyProfit" class="num">Monthly Profit (₹)</th>
+            <th data-key="recQty" class="num">Recommended Qty</th>
+            <th data-key="priority">Priority</th>
+            <th data-key="reason">Reason</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRICE WATCH ============ -->
+  <section class="view" id="view-pricewatch">
+    <h2 class="section-title">Price Watch — Original vs. Latest Uploaded Price</h2>
+    <p class="section-sub" id="pw-sub">Every SKU where your workbook carries a "Latest Purchase Price" update. This is the same comparison your sheet already highlights in yellow (Total Margin columns P &amp; U) — laid out side by side, sortable, with the ₹ and margin swing called out.</p>
+
+    <div class="panel" id="trend-panel">
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px; margin-bottom:14px;">
+        <div style="flex:1; min-width:240px;">
+          <h3 style="margin-bottom:6px;">Price &amp; Margin Trend</h3>
+          <p class="section-sub" style="margin:0;" id="trend-sub">Pick or search an item below — every re-upload adds another point to its trend line, so this builds up the more often you refresh the workbook.</p>
+        </div>
+        <div class="ptoggle" id="trend-metric-toggle">
+          <button class="ptoggle-btn active" data-metric="price">Price</button>
+          <button class="ptoggle-btn" data-metric="margin">Margin</button>
+        </div>
+      </div>
+      <div class="input-group" style="max-width:420px; margin-bottom:16px;">
+        <label for="trend-select">Item</label>
+        <select id="trend-select"></select>
+      </div>
+      <div id="trend-chart-wrap"></div>
+    </div>
+
+    <div class="filter-row" id="pw-filters">
+      <input type="text" id="pw-search" placeholder="Search company or size…">
+      <button class="chip active" data-d="all">All</button>
+      <button class="chip" data-d="up">Price ↑ (cost increase)</button>
+      <button class="chip" data-d="down">Price ↓ (cost decrease)</button>
+      <span class="result-count" id="pw-count"></span>
+    </div>
+
+    <div class="panel" style="padding:0; overflow:hidden;">
+      <div class="table-wrap" style="border:none; border-radius:0;">
+        <table id="pw-table">
+          <thead><tr>
+            <th data-key="brand">Company</th>
+            <th data-key="size">Size</th>
+            <th data-key="purchaseOrig" class="num">Original Purchase (₹)</th>
+            <th data-key="purchaseLatest" class="num">Latest Purchase (₹)</th>
+            <th data-key="deltaPrice" class="num">Δ Price (₹)</th>
+            <th data-key="deltaPct" class="num">Δ Price (%)</th>
+            <th data-key="marginOrig" class="num">Original Margin %</th>
+            <th data-key="marginLatest" class="num">Latest Margin %</th>
+            <th data-key="marginDeltaPts" class="num">Δ Margin (pts)</th>
+            <th>Direction</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">Δ Price = Latest − Original purchase price. A positive Δ means the vendor now costs more (margin erosion risk unless the sale/MRP price also moved); a negative Δ means AM Motors is buying cheaper than before. Click any row to plot it in the trend chart above.</p>
+  </section>
+
+  <!-- ============ BRAND ANALYSIS ============ -->
+  <section class="view" id="view-brandanalysis">
+    <h2 class="section-title" id="ba-title">Brand-wise Analysis</h2>
+    <p class="section-sub">Pick a size, see every brand that carries it. Pick a brand, see every size it carries. Sale price, purchase rate, scheme, margin, profit, and average sales — side by side.</p>
+
+    <div class="panel">
+      <div style="display:flex; gap:22px; flex-wrap:wrap; align-items:flex-end; margin-bottom:4px;">
+        <div class="ptoggle" id="ba-axis-toggle">
+          <button class="ptoggle-btn active" data-axis="size">By Size</button>
+          <button class="ptoggle-btn" data-axis="brand">By Brand</button>
+        </div>
+        <div class="input-group" style="min-width:220px;">
+          <label id="ba-select-label" for="ba-select">Choose a size</label>
+          <select id="ba-select"></select>
+        </div>
+        <div class="result-count" id="ba-count" style="align-self:center;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-bottom:4px;">Suggested Brand By</h3>
+      <p class="section-sub" style="margin-bottom:14px;">Click a criterion — the Suggested column in the table below updates immediately.</p>
+      <div class="filter-row" style="margin-bottom:14px;" id="ba-mode-buttons">
+        <button class="chip active" data-mode="overall">Overall</button>
+        <button class="chip" data-mode="margin">Margin</button>
+        <button class="chip" data-mode="volume">Unit of Sale</button>
+        <button class="chip" data-mode="profit">Profit Amount</button>
+        <button class="chip" data-mode="perunit">Per Unit Profit</button>
+      </div>
+      <div class="working-principle" id="ba-working-principle"></div>
+    </div>
+
+    <div class="panel" style="padding:0; overflow:hidden;">
+      <div class="table-wrap" style="border:none; border-radius:0;">
+        <table id="ba-table">
+          <thead><tr>
+            <th data-key="brand">Brand</th>
+            <th data-key="size">Size</th>
+            <th>Vehicle Models</th>
+            <th data-key="salePrice" class="num">Sale Price (₹)</th>
+            <th data-key="purchasePrice" class="num">Purchase Rate (₹)</th>
+            <th data-key="profitPerUnit" class="num">Profit / Unit (₹)</th>
+            <th data-key="profitPerUnitRaw" class="num">Profit w/o Discount (₹)</th>
+            <th data-key="margin" class="num">Margin %</th>
+            <th data-key="incentiveSlabPct" class="num">Incentive Slab %</th>
+            <th data-key="incentiveAmt" class="num">Incentive Amt/Unit (₹)</th>
+            <th data-key="avgMonthly" class="num">Avg Sale (Units/mo)</th>
+            <th data-key="avgSaleValue" class="num">Avg Sale Value (₹/mo)</th>
+            <th>Suggested</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SIZE x BRAND MATRIX ============ -->
+  <section class="view" id="view-matrix">
+    <h2 class="section-title" id="mx-title">Size × Brand Matrix</h2>
+    <p class="section-sub" id="mx-sub"></p>
+
+    <div class="panel">
+      <h3 style="margin-bottom:4px;">Show</h3>
+      <div class="filter-row" style="margin-bottom:0;" id="mx-metric-buttons">
+        <button class="chip" data-metric="salePrice">Sale Price</button>
+        <button class="chip" data-metric="purchasePrice">Purchase Rate</button>
+        <button class="chip" data-metric="profitPerUnitRaw">Profit w/o Discount</button>
+        <button class="chip" data-metric="incentiveSlabPct">Incentive Slab %</button>
+        <button class="chip" data-metric="incentiveAmt">Incentive Amt/Unit</button>
+        <button class="chip" data-metric="profitPerUnit">Profit / Unit</button>
+        <button class="chip active" data-metric="margin">Margin %</button>
+        <button class="chip" data-metric="avgMonthly">Avg Sale (Units/mo)</button>
+        <button class="chip" data-metric="avgSaleValue">Avg Sale Value</button>
+      </div>
+    </div>
+
+    <div class="panel" style="padding:0; overflow:hidden;">
+      <div class="table-wrap" style="border:none; border-radius:0;">
+        <table id="mx-table">
+          <thead><tr id="mx-header-row"></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">Bright green = #1 brand for whichever figure is currently shown above (cheaper wins for Sale Price / Purchase Rate; higher wins for everything else). Yellow = #2. Grey dash = not currently stocked.</p>
+  </section>
+
+  <!-- ============ VEHICLE FITMENT ============ -->
+  <section class="view" id="view-fitment">
+    <h2 class="section-title" id="ft-title">Vehicle Fitment</h2>
+    <p class="section-sub">Which car models take which size, and which brand to stock for them — parsed straight from the Vehicle Model / Models Applicable column of your workbook.</p>
+
+    <div class="panel">
+      <div style="display:flex; gap:22px; flex-wrap:wrap; align-items:flex-end; margin-bottom:4px;">
+        <div class="ptoggle" id="ft-axis-toggle">
+          <button class="ptoggle-btn active" data-axis="model">By Model</button>
+          <button class="ptoggle-btn" data-axis="size">By Size</button>
+          <button class="ptoggle-btn" data-axis="brand">By Brand</button>
+        </div>
+        <div class="input-group" style="min-width:220px;">
+          <label id="ft-select-label" for="ft-select">Choose a model (or All)</label>
+          <select id="ft-select"></select>
+        </div>
+        <div class="result-count" id="ft-count" style="align-self:center;"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-bottom:4px;">Suggested Brand By</h3>
+      <div class="filter-row" style="margin-bottom:14px;" id="ft-mode-buttons">
+        <button class="chip active" data-mode="overall">Overall</button>
+        <button class="chip" data-mode="margin">Margin</button>
+        <button class="chip" data-mode="volume">Unit of Sale</button>
+        <button class="chip" data-mode="perunit">Per Unit Profit</button>
+      </div>
+      <div class="working-principle" id="ft-working-principle"></div>
+    </div>
+
+    <div class="panel" style="padding:0; overflow:hidden;">
+      <div class="table-wrap" style="border:none; border-radius:0;">
+        <table id="ft-table">
+          <thead><tr>
+            <th data-key="model">Vehicle Model</th>
+            <th data-key="fuelType" id="ft-fuel-header">Fuel Type</th>
+            <th data-key="size">Size</th>
+            <th data-key="brand">Brand</th>
+            <th data-key="salePrice" class="num">Sale Price (₹)</th>
+            <th data-key="purchasePrice" class="num">Purchase Rate (₹)</th>
+            <th data-key="profitPerUnit" class="num">Profit / Unit (₹)</th>
+            <th data-key="profitPerUnitRaw" class="num">Profit w/o Discount (₹)</th>
+            <th data-key="margin" class="num">Margin %</th>
+            <th data-key="incentiveSlabPct" class="num">Incentive Slab %</th>
+            <th data-key="incentiveAmt" class="num">Incentive Amt/Unit (₹)</th>
+            <th data-key="avgMonthly" class="num">Avg Sale (Units/mo)</th>
+            <th>Suggested</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>AM Motors internal tool · figures in ₹ INR · re-upload the workbook anytime to refresh every number on this page.</footer>
+<div class="toast" id="toast"></div>
+
+<script id="raw-data-json" type="application/json">{"tyre":[{"size":"185/65R15","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M60MA1","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0.02,"incentiveAmt":101,"salePrice":6048.305084745763,"purchaseOrig":5027.01,"profitOrig":1021.2950847457632,"marginOrig":0.16885641025641032,"earningOrig":1122.2950847457632,"marginInclOrig":0.18555530334874604,"purchaseLatest":4632,"profitLatest":1416,"marginLatest":0.23416561580496015,"earningLatest":1517,"marginInclLatest":0.250814067535379,"months":{"Apr":{"count":5,"sales":30241.525423728817},"May":{"count":2,"sales":12096.610169491527},"Jun":{"count":2,"sales":12096.610169491527},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M74L60","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0.02,"incentiveAmt":101,"salePrice":6048.305084745763,"purchaseOrig":5027.01,"profitOrig":1021.2950847457632,"marginOrig":0.16885641025641032,"earningOrig":1122.2950847457632,"marginInclOrig":0.18555530334874604,"purchaseLatest":4261,"profitLatest":1787,"marginLatest":0.2955051141936389,"earningLatest":1888,"marginInclLatest":0.3121535659240577,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M79M10","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0.02,"incentiveAmt":102,"salePrice":6048.305084745763,"purchaseOrig":5083.39,"profitOrig":964.9150847457631,"marginOrig":0.1595347905282332,"earningOrig":1066.9150847457631,"marginInclOrig":0.17639901919574055,"purchaseLatest":5132,"profitLatest":916,"marginLatest":0.1514978282191398,"earningLatest":1018,"marginInclLatest":0.16831161552473026,"months":{"Apr":{"count":0,"sales":0},"May":{"count":9,"sales":54434.74576271187},"Jun":{"count":14,"sales":84676.27118644069},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"Apollo","party":"AM TYRES","partNo":"43110M55R60","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0.04,"incentiveAmt":175,"salePrice":5201.6949152542375,"purchaseOrig":4371.83,"profitOrig":829.8649152542375,"marginOrig":0.15953740632127733,"earningOrig":1004.8649152542375,"marginInclOrig":0.1931802867383513,"purchaseLatest":4749.15,"profitLatest":453,"marginLatest":0.08699951124144682,"earningLatest":628,"marginInclLatest":0.12072987943955686,"months":{"Apr":{"count":5,"sales":26008.474576271186},"May":{"count":5,"sales":26008.474576271186},"Jun":{"count":11,"sales":57218.64406779661},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M55R50","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0,"incentiveAmt":0,"salePrice":6022.881355932203,"purchaseOrig":5062.01,"profitOrig":960.8713559322032,"marginOrig":0.15953682285071052,"earningOrig":960.8713559322032,"marginInclOrig":0.15953682285071052,"purchaseLatest":4173.17,"profitLatest":1850,"marginLatest":0.3071140284226819,"earningLatest":1850,"marginInclLatest":0.3071619530040805,"months":{"Apr":{"count":3,"sales":18068.64406779661},"May":{"count":2,"sales":12045.762711864407},"Jun":{"count":4,"sales":24091.525423728814},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M75T50","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0,"incentiveAmt":0,"salePrice":6022.881355932203,"purchaseOrig":5062.01,"profitOrig":960.8713559322032,"marginOrig":0.15953682285071052,"earningOrig":960.8713559322032,"marginInclOrig":0.15953682285071052,"purchaseLatest":5062.01,"profitLatest":961,"marginLatest":0.15953682285071052,"earningLatest":961,"marginInclLatest":0.15955818207401154,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M60M70","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0,"incentiveAmt":0,"salePrice":5195.762711864407,"purchaseOrig":4366.85,"profitOrig":828.9127118644064,"marginOrig":0.15953629098026417,"earningOrig":828.9127118644064,"marginInclOrig":0.15953629098026417,"purchaseLatest":4510.16,"profitLatest":686,"marginLatest":0.13195419996737892,"earningLatest":686,"marginInclLatest":0.13203066383950415,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":1,"sales":5195.762711864407},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M74L70","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0,"incentiveAmt":0,"salePrice":5195.762711864407,"purchaseOrig":4366.85,"profitOrig":828.9127118644064,"marginOrig":0.15953629098026417,"earningOrig":828.9127118644064,"marginInclOrig":0.15953629098026417,"purchaseLatest":4366.85,"profitLatest":829,"marginLatest":0.15953629098026417,"earningLatest":829,"marginInclLatest":0.1595530908497798,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/65R15","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M85P00","models":"SWIFT, DZIRE, ERTIGA, BALENO, JIMNY, XL6","schemePct":0,"incentiveAmt":0,"salePrice":5930.5084745762715,"purchaseOrig":4521.06,"profitOrig":1409.448474576271,"marginOrig":0.2376606458988282,"earningOrig":1409.448474576271,"marginInclOrig":0.2376606458988282,"purchaseLatest":4521.06,"profitLatest":1409,"marginLatest":0.2376606458988282,"earningLatest":1409,"marginInclLatest":0.23758502429265504,"months":{"Apr":{"count":1,"sales":5930.5084745762715},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M75J80","models":"SWIFT, DZIRE, RITZ","schemePct":0.02,"incentiveAmt":70,"salePrice":4201.6949152542375,"purchaseOrig":3492.2,"profitOrig":709.4949152542376,"marginOrig":0.16885921742638169,"earningOrig":779.4949152542376,"marginInclOrig":0.18551916095199686,"purchaseLatest":3548,"profitLatest":654,"marginLatest":0.15557886244453412,"earningLatest":724,"marginInclLatest":0.17231141589350543,"months":{"Apr":{"count":8,"sales":33613.5593220339},"May":{"count":10,"sales":42016.94915254237},"Jun":{"count":10,"sales":42016.94915254237},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"Apollo","party":"AM TYRES","partNo":"43110M75J90","models":"SWIFT, DZIRE, RITZ","schemePct":0.04,"incentiveAmt":125,"salePrice":3705.084745762712,"purchaseOrig":3113.99,"profitOrig":591.0947457627121,"marginOrig":0.15953609332113455,"earningOrig":716.0947457627121,"marginInclOrig":0.1932735132662398,"purchaseLatest":3338.98,"profitLatest":366,"marginLatest":0.09881143641354072,"earningLatest":491,"marginInclLatest":0.1325205855443733,"months":{"Apr":{"count":12,"sales":44461.016949152545},"May":{"count":14,"sales":51871.186440677964},"Jun":{"count":8,"sales":29640.677966101695},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"Apollo","party":"AM TYRES","partNo":"43110M55R10","models":"SWIFT, DZIRE, RITZ","schemePct":0.04,"incentiveAmt":143,"salePrice":4265.254237288136,"purchaseOrig":3584.79,"profitOrig":680.4642372881362,"marginOrig":0.1595366183190941,"earningOrig":823.4642372881362,"marginInclOrig":0.19306334194317518,"purchaseLatest":3550.78,"profitLatest":714,"marginLatest":0.1675103516789192,"earningLatest":857,"marginInclLatest":0.20092588913173054,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M55R00","models":"SWIFT, DZIRE, RITZ","schemePct":0,"incentiveAmt":0,"salePrice":4133.050847457627,"purchaseOrig":3473.68,"profitOrig":659.3708474576274,"marginOrig":0.15953610826327666,"earningOrig":659.3708474576274,"marginInclOrig":0.15953610826327666,"purchaseLatest":2672,"profitLatest":1461,"marginLatest":0.35350420340373184,"earningLatest":1461,"marginInclLatest":0.3534919007586631,"months":{"Apr":{"count":0,"sales":0},"May":{"count":3,"sales":12399.152542372882},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M75J71","models":"SWIFT, DZIRE, RITZ","schemePct":0,"incentiveAmt":0,"salePrice":4475.423728813559,"purchaseOrig":3761.43,"profitOrig":713.9937288135593,"marginOrig":0.15953656504449915,"earningOrig":713.9937288135593,"marginInclOrig":0.15953656504449915,"purchaseLatest":2899,"profitLatest":1576,"marginLatest":0.3522401060405226,"earningLatest":1576,"marginInclLatest":0.35214542700246165,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M55R20","models":"SWIFT, DZIRE, RITZ","schemePct":0,"incentiveAmt":0,"salePrice":3872.8813559322034,"purchaseOrig":3255.02,"profitOrig":617.8613559322034,"marginOrig":0.15953531728665207,"earningOrig":617.8613559322034,"marginInclOrig":0.15953531728665207,"purchaseLatest":3255.02,"profitLatest":618,"marginLatest":0.15953531728665207,"earningLatest":618,"marginInclLatest":0.1595711159737418,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M75J10","models":"SWIFT, DZIRE, RITZ","schemePct":0,"incentiveAmt":0,"salePrice":3872.8813559322034,"purchaseOrig":3255.02,"profitOrig":617.8613559322034,"marginOrig":0.15953531728665207,"earningOrig":617.8613559322034,"marginInclOrig":0.15953531728665207,"purchaseLatest":2760,"profitLatest":1113,"marginLatest":0.2873522975929978,"earningLatest":1113,"marginInclLatest":0.28738293216630195,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M83P00","models":"SWIFT, DZIRE, RITZ","schemePct":0,"incentiveAmt":0,"salePrice":3938.983050847458,"purchaseOrig":3271.16,"profitOrig":667.823050847458,"marginOrig":0.1695419965576593,"earningOrig":667.823050847458,"marginInclOrig":0.1695419965576593,"purchaseLatest":3271.16,"profitLatest":668,"marginLatest":0.1695419965576593,"earningLatest":668,"marginInclLatest":0.16958691910499138,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R12","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M79G90","models":"ALTO, A STAR, M 800, OMNI","schemePct":0.02,"incentiveAmt":53,"salePrice":3168.64406779661,"purchaseOrig":2663.13,"profitOrig":505.5140677966101,"marginOrig":0.15953640010698045,"earningOrig":558.5140677966101,"marginInclOrig":0.17626279753944904,"purchaseLatest":2663,"profitLatest":506,"marginLatest":0.1595774271195507,"earningLatest":559,"marginInclLatest":0.17641615405188552,"months":{"Apr":{"count":7,"sales":22180.508474576272},"May":{"count":5,"sales":15843.22033898305},"Jun":{"count":6,"sales":19011.864406779663},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R12","brand":"Apollo","party":"AM TYRES","partNo":"43110M79G60","models":"ALTO, A STAR, M 800, OMNI","schemePct":0.04,"incentiveAmt":95,"salePrice":2820.3389830508477,"purchaseOrig":2370.39,"profitOrig":449.9489830508478,"marginOrig":0.15953719951923087,"earningOrig":544.9489830508478,"marginInclOrig":0.1932210937500001,"purchaseLatest":2572.88,"profitLatest":247,"marginLatest":0.08774086538461541,"earningLatest":342,"marginInclLatest":0.12126201923076922,"months":{"Apr":{"count":6,"sales":16922.033898305086},"May":{"count":2,"sales":5640.677966101695},"Jun":{"count":4,"sales":11281.35593220339},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R12","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M79G80","models":"ALTO, A STAR, M 800, OMNI","schemePct":0,"incentiveAmt":0,"salePrice":3411.0169491525426,"purchaseOrig":2866.84,"profitOrig":544.1769491525424,"marginOrig":0.15953510559006212,"earningOrig":544.1769491525424,"marginInclOrig":0.15953510559006212,"purchaseLatest":2536,"profitLatest":875,"marginLatest":0.2565267080745342,"earningLatest":875,"marginInclLatest":0.25652173913043474,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R12","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M79G40","models":"ALTO, A STAR, M 800, OMNI","schemePct":0,"incentiveAmt":0,"salePrice":2870.3389830508477,"purchaseOrig":2412.42,"profitOrig":457.9189830508476,"marginOrig":0.15953480956598765,"earningOrig":457.9189830508476,"marginInclOrig":0.15953480956598765,"purchaseLatest":2492.63,"profitLatest":378,"marginLatest":0.1315903749630942,"earningLatest":378,"marginInclLatest":0.1316917626217892,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R12","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M79GAO","models":"ALTO, A STAR, M 800, OMNI","schemePct":0,"incentiveAmt":0,"salePrice":2997.4576271186443,"purchaseOrig":2479.07,"profitOrig":518.3876271186441,"marginOrig":0.17294243709358212,"earningOrig":518.3876271186441,"marginInclOrig":0.17294243709358212,"purchaseLatest":1928.21,"profitLatest":1069,"marginLatest":0.3567181792479503,"earningLatest":1069,"marginInclLatest":0.3566355668645745,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/70R13","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M59K00","models":"ZEN ESTILO, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3281.35593220339,"purchaseOrig":2757.87,"profitOrig":523.4859322033899,"marginOrig":0.15953341942148763,"earningOrig":523.4859322033899,"marginInclOrig":0.15953341942148763,"purchaseLatest":1625.98,"profitLatest":1655,"marginLatest":0.5044792355371901,"earningLatest":1655,"marginInclLatest":0.5043646694214876,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R13","brand":"Apollo","party":"AM TYRES","partNo":"43110M67L20","models":"ALTO, WAGON R","schemePct":0.04,"incentiveAmt":107,"salePrice":3183.898305084746,"purchaseOrig":2675.95,"profitOrig":507.94830508474615,"marginOrig":0.15953659834974726,"earningOrig":614.9483050847462,"marginInclOrig":0.19314319936119256,"purchaseLatest":2873.73,"profitLatest":310,"marginLatest":0.09741778014373176,"earningLatest":417,"marginInclLatest":0.1309715198296513,"months":{"Apr":{"count":0,"sales":0},"May":{"count":9,"sales":28655.084745762713},"Jun":{"count":6,"sales":19103.389830508477},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R13","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M67L00","models":"ALTO, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3266.949152542373,"purchaseOrig":2745.75,"profitOrig":521.1991525423732,"marginOrig":0.15953696498054484,"earningOrig":521.1991525423732,"marginInclOrig":0.15953696498054484,"purchaseLatest":2784.38,"profitLatest":483,"marginLatest":0.147712477302205,"earningLatest":483,"marginInclLatest":0.14784435797665368,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":1,"sales":3266.949152542373},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/80R13","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M62S00","models":"ALTO, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3670.3389830508477,"purchaseOrig":2798.24,"profitOrig":872.0989830508479,"marginOrig":0.23760720387901188,"earningOrig":872.0989830508479,"marginInclOrig":0.23760720387901188,"purchaseLatest":2798.24,"profitLatest":872,"marginLatest":0.23760720387901188,"earningLatest":872,"marginInclLatest":0.2375802355114292,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/65R13","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M59K60","models":"ALTO, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3811.8644067796613,"purchaseOrig":3203.73,"profitOrig":608.1344067796613,"marginOrig":0.15953726100489113,"earningOrig":608.1344067796613,"marginInclOrig":0.15953726100489113,"purchaseLatest":2867.65,"profitLatest":944,"marginLatest":0.2477040907069809,"earningLatest":944,"marginInclLatest":0.24764784348599375,"months":{"Apr":{"count":0,"sales":0},"May":{"count":2,"sales":7623.728813559323},"Jun":{"count":2,"sales":7623.728813559323},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/65R13","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M59K50","models":"ALTO, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3438.983050847458,"purchaseOrig":2890.34,"profitOrig":548.6430508474577,"marginOrig":0.15953642188270087,"earningOrig":548.6430508474577,"marginInclOrig":0.15953642188270087,"purchaseLatest":2808.59,"profitLatest":630,"marginLatest":0.1833079842286841,"earningLatest":630,"marginInclLatest":0.18319369147363232,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/65R14","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M68K60","models":"WAGON R","schemePct":0.02,"incentiveAmt":66,"salePrice":3950,"purchaseOrig":3319.83,"profitOrig":630.1700000000001,"marginOrig":0.15953670886075952,"earningOrig":696.1700000000001,"marginInclOrig":0.17624556962025317,"purchaseLatest":2750.78,"profitLatest":1199,"marginLatest":0.3035999999999999,"earningLatest":1265,"marginInclLatest":0.320253164556962,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":5,"sales":19750},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/65R14","brand":"Apollo","party":"AM TYRES","partNo":"43110M67L10","models":"WAGON R","schemePct":0.04,"incentiveAmt":119,"salePrice":3547.4576271186443,"purchaseOrig":2981.51,"profitOrig":565.947627118644,"marginOrig":0.15953612040133777,"earningOrig":684.947627118644,"marginInclOrig":0.19308127090301003,"purchaseLatest":3090.68,"profitLatest":457,"marginLatest":0.12876196846631638,"earningLatest":576,"marginInclLatest":0.16236980410893453,"months":{"Apr":{"count":8,"sales":28379.661016949154},"May":{"count":1,"sales":3547.4576271186443},"Jun":{"count":15,"sales":53211.86440677966},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/65R14","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M67L50","models":"WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":4011.0169491525426,"purchaseOrig":3057.97,"profitOrig":953.0469491525428,"marginOrig":0.2376073103739701,"earningOrig":953.0469491525428,"marginInclOrig":0.2376073103739701,"purchaseLatest":3057.97,"profitLatest":953,"marginLatest":0.2376073103739701,"earningLatest":953,"marginInclLatest":0.23759560532431862,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/80R13","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M68K00","models":"A STAR, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3661.0169491525426,"purchaseOrig":3076.96,"profitOrig":584.0569491525425,"marginOrig":0.1595340740740741,"earningOrig":584.0569491525425,"marginInclOrig":0.1595340740740741,"purchaseLatest":3000,"profitLatest":661,"marginLatest":0.1805555555555556,"earningLatest":661,"marginInclLatest":0.18055092592592592,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/80R13","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M69R00","models":"A STAR, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3661.0169491525426,"purchaseOrig":3040.24,"profitOrig":620.7769491525428,"marginOrig":0.16956407407407417,"earningOrig":620.7769491525428,"marginInclOrig":0.16956407407407417,"purchaseLatest":3084.38,"profitLatest":577,"marginLatest":0.15750731481481484,"earningLatest":577,"marginInclLatest":0.1576064814814815,"months":{"Apr":{"count":1,"sales":3661.0169491525426},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/80R13","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M68K10","models":"A STAR, WAGON R","schemePct":0,"incentiveAmt":0,"salePrice":3669.491525423729,"purchaseOrig":3034.71,"profitOrig":634.7815254237289,"marginOrig":0.17298896073903006,"earningOrig":634.7815254237289,"marginInclOrig":0.17298896073903006,"purchaseLatest":2320.31,"profitLatest":1349,"marginLatest":0.36767533487297926,"earningLatest":1349,"marginInclLatest":0.3676258660508083,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/R13","brand":"Apollo","party":"AM TYRES","partNo":"43110M78L00","models":"EECO, SUPER CARRY","schemePct":0.04,"incentiveAmt":139,"salePrice":4134.745762711865,"purchaseOrig":3475.11,"profitOrig":659.6357627118646,"marginOrig":0.1595347817175651,"earningOrig":798.6357627118646,"marginInclOrig":0.19315232629637225,"purchaseLatest":3025.42,"profitLatest":1109,"marginLatest":0.2682935847509736,"earningLatest":1248,"marginInclLatest":0.3018323426931748,"months":{"Apr":{"count":4,"sales":16538.98305084746},"May":{"count":2,"sales":8269.49152542373},"Jun":{"count":6,"sales":24808.47457627119},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/R13","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M78L10","models":"EECO, SUPER CARRY","schemePct":0,"incentiveAmt":0,"salePrice":4281.35593220339,"purchaseOrig":3598.33,"profitOrig":683.0259322033899,"marginOrig":0.15953495645288995,"earningOrig":683.0259322033899,"marginInclOrig":0.15953495645288995,"purchaseLatest":3498.38,"profitLatest":783,"marginLatest":0.18288036421219317,"earningLatest":783,"marginInclLatest":0.18288598574821852,"months":{"Apr":{"count":0,"sales":0},"May":{"count":1,"sales":4281.35593220339},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/R13","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M78T00","models":"EECO, SUPER CARRY","schemePct":0,"incentiveAmt":0,"salePrice":3708.474576271187,"purchaseOrig":3079.64,"profitOrig":628.834576271187,"marginOrig":0.16956691042047545,"earningOrig":628.834576271187,"marginInclOrig":0.16956691042047545,"purchaseLatest":2840,"profitLatest":868,"marginLatest":0.23418647166361983,"earningLatest":868,"marginInclLatest":0.23405850091407676,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"155/R13","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M78L21","models":"EECO, SUPER CARRY","schemePct":0,"incentiveAmt":0,"salePrice":3793.220338983051,"purchaseOrig":3188.24,"profitOrig":604.9803389830513,"marginOrig":0.1594899016979447,"earningOrig":604.9803389830513,"marginInclOrig":0.1594899016979447,"purchaseLatest":2950,"profitLatest":843,"marginLatest":0.2222966934763182,"earningLatest":843,"marginInclLatest":0.2222386058981233,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/70R14","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M76M20","models":"CELERIO, S PRESSO","schemePct":0.02,"incentiveAmt":64,"salePrice":3823.728813559322,"purchaseOrig":3213.71,"profitOrig":610.0188135593221,"marginOrig":0.1595350620567376,"earningOrig":674.0188135593221,"marginInclOrig":0.17627265070921988,"purchaseLatest":3065,"profitLatest":759,"marginLatest":0.19842641843971634,"earningLatest":823,"marginInclLatest":0.21523492907801417,"months":{"Apr":{"count":23,"sales":87945.76271186442},"May":{"count":33,"sales":126183.05084745763},"Jun":{"count":12,"sales":45884.745762711864},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/70R14","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M81R10","models":"CELERIO, S PRESSO","schemePct":0,"incentiveAmt":0,"salePrice":3778.813559322034,"purchaseOrig":3175.95,"profitOrig":602.8635593220342,"marginOrig":0.15953778874187047,"earningOrig":602.8635593220342,"marginInclOrig":0.15953778874187047,"purchaseLatest":2748,"profitLatest":1031,"marginLatest":0.2727876205427226,"earningLatest":1031,"marginInclLatest":0.2728369589594079,"months":{"Apr":{"count":1,"sales":3778.813559322034},"May":{"count":1,"sales":3778.813559322034},"Jun":{"count":2,"sales":7557.627118644068},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/70R14","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M76M10","models":"CELERIO, S PRESSO","schemePct":0,"incentiveAmt":0,"salePrice":3616.1016949152545,"purchaseOrig":3039.2,"profitOrig":576.9016949152547,"marginOrig":0.15953691117881427,"earningOrig":576.9016949152547,"marginInclOrig":0.15953691117881427,"purchaseLatest":2867.19,"profitLatest":749,"marginLatest":0.2071047105694868,"earningLatest":749,"marginInclLatest":0.2071291305366768,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/70R14","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M84P00","models":"CELERIO, S PRESSO","schemePct":0,"incentiveAmt":0,"salePrice":3705.9322033898306,"purchaseOrig":2825.18,"profitOrig":880.7522033898308,"marginOrig":0.23766009604390587,"earningOrig":880.7522033898308,"marginInclOrig":0.23766009604390587,"purchaseLatest":2825.18,"profitLatest":881,"marginLatest":0.23766009604390587,"earningLatest":881,"marginInclLatest":0.23772696089640977,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"175/65R15","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M66R00","models":"IGNIS","schemePct":0,"incentiveAmt":0,"salePrice":5667.796610169492,"purchaseOrig":4763.58,"profitOrig":904.216610169492,"marginOrig":0.15953582535885175,"earningOrig":904.216610169492,"marginInclOrig":0.15953582535885175,"purchaseLatest":4767.34,"profitLatest":900,"marginLatest":0.1588724282296651,"earningLatest":900,"marginInclLatest":0.15879186602870812,"months":{"Apr":{"count":0,"sales":0},"May":{"count":5,"sales":28338.98305084746},"Jun":{"count":1,"sales":5667.796610169492},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"175/60R15","brand":"Yokohama","party":"AM TYRES","partNo":"43110M81R50","models":"CELERIO","schemePct":0,"incentiveAmt":0,"salePrice":6348.305084745763,"purchaseOrig":5335.53,"profitOrig":1012.7750847457637,"marginOrig":0.15953472166599933,"earningOrig":1012.7750847457637,"marginInclOrig":0.15953472166599933,"purchaseLatest":4814.06,"profitLatest":1534,"marginLatest":0.24167790682151918,"earningLatest":1534,"marginInclLatest":0.241639300493926,"months":{"Apr":{"count":0,"sales":0},"May":{"count":1,"sales":6348.305084745763},"Jun":{"count":1,"sales":6348.305084745763},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/55R16","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M79M60","models":"CIAZ, BALENO","schemePct":0.02,"incentiveAmt":132,"salePrice":7827.966101694916,"purchaseOrig":6579.13,"profitOrig":1248.8361016949157,"marginOrig":0.15953519540976513,"earningOrig":1380.8361016949157,"marginInclOrig":0.17639781314279532,"purchaseLatest":6661,"profitLatest":1167,"marginLatest":0.14907654000216528,"earningLatest":1299,"marginInclLatest":0.16594348814550178,"months":{"Apr":{"count":2,"sales":15655.932203389832},"May":{"count":2,"sales":15655.932203389832},"Jun":{"count":5,"sales":39139.83050847458},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/55R16","brand":"Apollo","party":"AM TYRES","partNo":"43110M79M50","models":"CIAZ, BALENO","schemePct":0.04,"incentiveAmt":225,"salePrice":6689.830508474577,"purchaseOrig":5622.56,"profitOrig":1067.2705084745767,"marginOrig":0.15953625538383587,"earningOrig":1292.2705084745767,"marginInclOrig":0.19316939447681788,"purchaseLatest":5990.68,"profitLatest":699,"marginLatest":0.1045094502153535,"earningLatest":924,"marginInclLatest":0.1381200912085128,"months":{"Apr":{"count":5,"sales":33449.15254237289},"May":{"count":7,"sales":46828.813559322036},"Jun":{"count":13,"sales":86967.7966101695},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/55R16","brand":"Apollo","party":"AM TYRES","partNo":"43110M68P20","models":"CIAZ, BALENO","schemePct":0.04,"incentiveAmt":225,"salePrice":6689.830508474577,"purchaseOrig":5622.56,"profitOrig":1067.2705084745767,"marginOrig":0.15953625538383587,"earningOrig":1292.2705084745767,"marginInclOrig":0.19316939447681788,"purchaseLatest":5558.47,"profitLatest":1131,"marginLatest":0.16911646820369908,"earningLatest":1356,"marginInclLatest":0.20269571826703822,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/60R16","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M72U00","models":"FRONX","schemePct":0.02,"incentiveAmt":87,"salePrice":5288.983050847458,"purchaseOrig":4374.05,"profitOrig":914.9330508474577,"marginOrig":0.1729884633872777,"earningOrig":1001.9330508474577,"marginInclOrig":0.18943775036051916,"purchaseLatest":6187,"profitLatest":-898,"marginLatest":-0.1697900977407466,"earningLatest":-811,"marginInclLatest":-0.1533376061528601,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/80R15","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M80T00","models":"JIMNY","schemePct":0,"incentiveAmt":0,"salePrice":7023.728813559323,"purchaseOrig":5903.19,"profitOrig":1120.538813559323,"marginOrig":0.1595361727799229,"earningOrig":1120.538813559323,"marginInclOrig":0.1595361727799229,"purchaseLatest":5838.1,"profitLatest":1186,"marginLatest":0.16880333011583012,"earningLatest":1186,"marginInclLatest":0.1688561776061776,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"205/60R16","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M55K30","models":"BREZZA","schemePct":0,"incentiveAmt":0,"salePrice":6347.457627118644,"purchaseOrig":5334.81,"profitOrig":1012.6476271186439,"marginOrig":0.15953594125500664,"earningOrig":1012.6476271186439,"marginInclOrig":0.15953594125500664,"purchaseLatest":4915.75,"profitLatest":1432,"marginLatest":0.22555607476635517,"earningLatest":1432,"marginInclLatest":0.22560213618157543,"months":{"Apr":{"count":1,"sales":6347.457627118644},"May":{"count":2,"sales":12694.915254237289},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"205/65R16","brand":"Apollo","party":"AM TYRES","partNo":"43110M72I01","models":"INVICTO","schemePct":0.04,"incentiveAmt":209,"salePrice":6222.033898305085,"purchaseOrig":5224.99,"profitOrig":997.0438983050853,"marginOrig":0.16024404794333977,"earningOrig":1206.0438983050853,"marginInclOrig":0.19383435031326623,"purchaseLatest":5224.99,"profitLatest":997,"marginLatest":0.16024404794333977,"earningLatest":1206,"marginInclLatest":0.19382729501498228,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"205/65R16","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M72I02","models":"INVICTO","schemePct":0,"incentiveAmt":0,"salePrice":7416.949152542374,"purchaseOrig":6550.5,"profitOrig":866.4491525423737,"marginOrig":0.11682015539305311,"earningOrig":866.4491525423737,"marginInclOrig":0.11682015539305311,"purchaseLatest":6550.5,"profitLatest":866,"marginLatest":0.11682015539305311,"earningLatest":866,"marginInclLatest":0.11675959780621571,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/60R16","brand":"Apollo","party":"AM TYRES","partNo":"43110M82P00","models":"VITARA BREZZA","schemePct":0.04,"incentiveAmt":214,"salePrice":6350.847457627119,"purchaseOrig":5337.66,"profitOrig":1013.1874576271193,"marginOrig":0.1595357886309048,"earningOrig":1227.1874576271193,"marginInclOrig":0.19323207899653064,"purchaseLatest":5724.58,"profitLatest":626,"marginLatest":0.09861163597544712,"earningLatest":840,"marginInclLatest":0.13226581265012008,"months":{"Apr":{"count":1,"sales":6350.847457627119},"May":{"count":7,"sales":44455.932203389835},"Jun":{"count":3,"sales":19052.54237288136},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/60R16","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M84R00","models":"VITARA BREZZA","schemePct":0,"incentiveAmt":0,"salePrice":6398.305084745763,"purchaseOrig":5377.55,"profitOrig":1020.7550847457633,"marginOrig":0.15953523178807955,"earningOrig":1020.7550847457633,"marginInclOrig":0.15953523178807955,"purchaseLatest":4851.56,"profitLatest":1547,"marginLatest":0.24174294039735103,"earningLatest":1547,"marginInclLatest":0.24178278145695362,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":1,"sales":6398.305084745763},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/60R17","brand":"Apollo","party":"AM TYRES","partNo":"43110M76T00","models":"GRAND VITARA, INVICTO","schemePct":0.04,"incentiveAmt":218,"salePrice":6494.9152542372885,"purchaseOrig":5458.75,"profitOrig":1036.1652542372885,"marginOrig":0.15953483820459297,"earningOrig":1254.1652542372885,"marginInclOrig":0.1930995563674322,"purchaseLatest":6052.54,"profitLatest":442,"marginLatest":0.0681110125260961,"earningLatest":660,"marginInclLatest":0.1016179540709812,"months":{"Apr":{"count":9,"sales":58454.2372881356},"May":{"count":0,"sales":0},"Jun":{"count":1,"sales":6494.9152542372885},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/60R17","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M72I00","models":"GRAND VITARA, INVICTO","schemePct":0.02,"incentiveAmt":172,"salePrice":9383.898305084746,"purchaseOrig":8597.72,"profitOrig":786.1783050847462,"marginOrig":0.08377949968391588,"earningOrig":958.1783050847462,"marginInclOrig":0.10210876907793737,"purchaseLatest":8597.72,"profitLatest":786,"marginLatest":0.08377949968391588,"earningLatest":958,"marginInclLatest":0.10208976790391042,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/60R17","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M60P00","models":"Victoris","schemePct":0,"incentiveAmt":0,"salePrice":7266.1016949152545,"purchaseOrig":6277.52,"profitOrig":988.581694915254,"marginOrig":0.13605393048752037,"earningOrig":988.581694915254,"marginInclOrig":0.13605393048752037,"purchaseLatest":6277.52,"profitLatest":989,"marginLatest":0.13605393048752037,"earningLatest":989,"marginInclLatest":0.13611149988336832,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":1,"sales":7266.1016949152545},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/R12","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M790F0","models":"OMNI, SUPER CARRY","schemePct":0,"incentiveAmt":0,"salePrice":2939.8305084745766,"purchaseOrig":2470.82,"profitOrig":469.01050847457645,"marginOrig":0.15953658114730473,"earningOrig":469.01050847457645,"marginInclOrig":0.15953658114730473,"purchaseLatest":2470.82,"profitLatest":469,"marginLatest":0.15953658114730473,"earningLatest":469,"marginInclLatest":0.15953300663015277,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/R12","brand":"Apollo","party":"AM TYRES","partNo":"43110M73M00","models":"OMNI, SUPER CARRY","schemePct":0.04,"incentiveAmt":100,"salePrice":2987.2881355932204,"purchaseOrig":2510.71,"profitOrig":476.5781355932204,"marginOrig":0.15953537588652483,"earningOrig":576.5781355932204,"marginInclOrig":0.19301055319148938,"purchaseLatest":1732.81,"profitLatest":1254,"marginLatest":0.419938780141844,"earningLatest":1354,"marginInclLatest":0.45325390070921984,"months":{"Apr":{"count":2,"sales":5974.576271186441},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/R12","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M790G0","models":"OMNI, SUPER CARRY","schemePct":0,"incentiveAmt":0,"salePrice":2934.7457627118647,"purchaseOrig":2466.69,"profitOrig":468.05576271186465,"marginOrig":0.15948766965059205,"earningOrig":468.05576271186465,"marginInclOrig":0.15948766965059205,"purchaseLatest":2466.69,"profitLatest":468,"marginLatest":0.15948766965059205,"earningLatest":468,"marginInclLatest":0.15946866878429106,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"145/70R12","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M84631","models":"M 800","schemePct":0,"incentiveAmt":0,"salePrice":2830.5084745762715,"purchaseOrig":2378.94,"profitOrig":451.56847457627146,"marginOrig":0.15953616766467074,"earningOrig":451.56847457627146,"marginInclOrig":0.15953616766467074,"purchaseLatest":2378.94,"profitLatest":452,"marginLatest":0.15953616766467074,"earningLatest":452,"marginInclLatest":0.159688622754491,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/65R15","brand":"Bridgestone","party":"BRIDGESTONE","partNo":"43110M55K01","models":"ERTIGA","schemePct":0,"incentiveAmt":0,"salePrice":7060.169491525424,"purchaseOrig":5933.82,"profitOrig":1126.3494915254241,"marginOrig":0.15953575801224348,"earningOrig":1126.3494915254241,"marginInclOrig":0.15953575801224348,"purchaseLatest":5933.82,"profitLatest":1126,"marginLatest":0.15953575801224348,"earningLatest":1126,"marginInclLatest":0.1594862561517225,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"185/70R14","brand":"JK Tyre","party":"JK TYRE","partNo":"43110M75J20","models":"RITZ, DZIRE","schemePct":0,"incentiveAmt":0,"salePrice":4789.830508474576,"purchaseOrig":4025.68,"profitOrig":764.1505084745763,"marginOrig":0.15953602264685068,"earningOrig":764.1505084745763,"marginInclOrig":0.15953602264685068,"purchaseLatest":3115,"profitLatest":1675,"marginLatest":0.3496638358103326,"earningLatest":1675,"marginInclLatest":0.34969922151450816,"months":{"Apr":{"count":0,"sales":0},"May":{"count":2,"sales":9579.661016949152},"Jun":{"count":1,"sales":4789.830508474576},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/75R15","brand":"Ceat","party":"MEENAKSHI","partNo":"43110M80050","models":"GYPSY","schemePct":0,"incentiveAmt":0,"salePrice":6291.525423728814,"purchaseOrig":5203.65,"profitOrig":1087.875423728814,"marginOrig":0.17291123383620696,"earningOrig":1087.875423728814,"marginInclOrig":0.17291123383620696,"purchaseLatest":5203.65,"profitLatest":1088,"marginLatest":0.17291123383620696,"earningLatest":1088,"marginInclLatest":0.17293103448275862,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/60R16","brand":"Goodyear","party":"SPEED AWAY PRIVATE LIMITED","partNo":"43110M72D00","models":"FRONX","schemePct":0,"incentiveAmt":0,"salePrice":7483.898305084746,"purchaseOrig":6289.95,"profitOrig":1193.9483050847466,"marginOrig":0.1595356131808403,"earningOrig":1193.9483050847466,"marginInclOrig":0.1595356131808403,"purchaseLatest":6508,"profitLatest":976,"marginLatest":0.1303997282300986,"earningLatest":976,"marginInclLatest":0.13041331672517267,"months":{"Apr":{"count":7,"sales":52387.288135593226},"May":{"count":8,"sales":59871.18644067797},"Jun":{"count":13,"sales":97290.6779661017},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"195/60R16","brand":"MRF","party":"Others","partNo":"43110M72R70","models":"FRONX","schemePct":0,"incentiveAmt":0,"salePrice":5932.203389830509,"purchaseOrig":5583.59,"profitOrig":348.6133898305088,"marginOrig":0.058766257142857194,"earningOrig":348.6133898305088,"marginInclOrig":0.058766257142857194,"purchaseLatest":4745.76,"profitLatest":1186,"marginLatest":0.20000045714285716,"earningLatest":1186,"marginInclLatest":0.19992571428571426,"months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":1,"sales":5932.203389830509},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"165/80R14","brand":"MRF","party":"Others","partNo":"43110M75J30","models":"SWIFT, DZIRE,RITZ","schemePct":0,"incentiveAmt":0,"salePrice":3898.305084745763,"purchaseOrig":3225.42,"profitOrig":672.8850847457629,"marginOrig":0.17260965217391308,"earningOrig":672.8850847457629,"marginInclOrig":0.17260965217391308,"purchaseLatest":2966.1,"profitLatest":932,"marginLatest":0.23913086956521748,"earningLatest":932,"marginInclLatest":0.2390782608695652,"months":{"Apr":{"count":0,"sales":0},"May":{"count":1,"sales":3898.305084745763},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"215/60R16","brand":"MRF","party":"Others","partNo":"43110M82P10","models":"VITARA BREZZA","schemePct":0,"incentiveAmt":0,"salePrice":6694.9152542372885,"purchaseOrig":5423.73,"profitOrig":1271.185254237289,"marginOrig":0.18987324050632923,"earningOrig":1271.185254237289,"marginInclOrig":0.18987324050632923,"purchaseLatest":6059.32,"profitLatest":636,"marginLatest":0.09493701265822795,"earningLatest":636,"marginInclLatest":0.09499746835443038,"months":{"Apr":{"count":0,"sales":0},"May":{"count":1,"sales":6694.9152542372885},"Jun":{"count":1,"sales":6694.9152542372885},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}}],"battery":[{"size":"N55","brand":"Exide","party":"","partNo":"33610A83PA0","models":"S SCross, Ertiga, XL6, Dzire, Baleno","schemePct":0.022121609863288448,"incentiveAmt":120,"salePrice":6532.203389830509,"purchaseOrig":5424.56,"profitOrig":1107.6433898305086,"marginOrig":0.16956658017644005,"earningOrig":1227.6433898305086,"marginInclOrig":0.18793710430721328,"purchaseLatest":5046.61,"profitLatest":1486,"marginLatest":0.2274883238194084,"earningLatest":1606,"marginInclLatest":0.24585884795018162,"fuelType":"Petrol(Hybrid)","months":{"Apr":{"count":24,"sales":156772.88135593222},"May":{"count":33,"sales":215562.7118644068},"Jun":{"count":35,"sales":228627.1186440678},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"DIN50","brand":"Exide","party":"","partNo":"33610A65M00","models":"Ignis, Ertiga","schemePct":0.02138903989947151,"incentiveAmt":120,"salePrice":6755.932203389831,"purchaseOrig":5610.35,"profitOrig":1145.5822033898303,"marginOrig":0.1695668590065228,"earningOrig":1265.5822033898303,"marginInclOrig":0.18732902659307574,"purchaseLatest":4748.44,"profitLatest":2007,"marginLatest":0.2970722528850978,"earningLatest":2127,"marginInclLatest":0.3148344204716508,"fuelType":"Diesel","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"38B20","brand":"Exide","party":"","partNo":"33610A68KB0","models":"Vitara Brezza, XL6, WagonR, Swift, Dzire","schemePct":0.033671639780797624,"incentiveAmt":120,"salePrice":4291.525423728814,"purchaseOrig":3563.83,"profitOrig":727.6954237288137,"marginOrig":0.16956567930489735,"earningOrig":847.6954237288137,"marginInclOrig":0.1975277646129542,"purchaseLatest":3111.86,"profitLatest":1180,"marginLatest":0.2749605055292259,"earningLatest":1300,"marginInclLatest":0.3029225908372828,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":3,"sales":12874.57627118644},"Jun":{"count":1,"sales":4291.525423728814},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"DIN55","brand":"Exide","party":"","partNo":"33610A68PA0","models":"Baleno","schemePct":0.017948756300761325,"incentiveAmt":120,"salePrice":8050.847457627119,"purchaseOrig":6685.7,"profitOrig":1365.1474576271194,"marginOrig":0.1695656842105264,"earningOrig":1485.1474576271194,"marginInclOrig":0.18447094736842112,"purchaseLatest":6685.7,"profitLatest":1365,"marginLatest":0.1695473684210526,"earningLatest":1485,"marginInclLatest":0.18445263157894737,"fuelType":"Diesel(Hybrid)","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"DIN70","brand":"Exide","party":"","partNo":"33610A84PA0","models":"S Cross, Ertiga, Ciaz, Dzire","schemePct":0.017116375664507626,"incentiveAmt":120,"salePrice":8442.372881355932,"purchaseOrig":7010.83,"profitOrig":1431.542881355932,"marginOrig":0.16956641236699455,"earningOrig":1551.542881355932,"marginInclOrig":0.1837804256173459,"purchaseLatest":6716.94,"profitLatest":1725,"marginLatest":0.20432644047380044,"earningLatest":1845,"marginInclLatest":0.2185404537241518,"fuelType":"Diesel(Hybrid)","months":{"Apr":{"count":4,"sales":33769.49152542373},"May":{"count":2,"sales":16884.745762711864},"Jun":{"count":2,"sales":16884.745762711864},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"42B","brand":"Exide","party":"","partNo":"33610M54T00","models":"Fronx","schemePct":0.029093095481114946,"incentiveAmt":120,"salePrice":4907.627118644068,"purchaseOrig":4124.69,"profitOrig":782.9371186440685,"marginOrig":0.1595347608357798,"earningOrig":902.9371186440685,"marginInclOrig":0.18398649628734257,"purchaseLatest":3857,"profitLatest":1051,"marginLatest":0.21415644966327058,"earningLatest":1171,"marginInclLatest":0.23860818511483334,"fuelType":"","months":{"Apr":{"count":27,"sales":132505.93220338985},"May":{"count":29,"sales":142321.18644067796},"Jun":{"count":27,"sales":132505.93220338985},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"38B20","brand":"Exide","party":"","partNo":"33610A68K20","models":"Vitara Brezza, XL6, Wagon R, Swift, Dzire","schemePct":0.033671639780797624,"incentiveAmt":120,"salePrice":4291.525423728814,"purchaseOrig":3563.83,"profitOrig":727.6954237288137,"marginOrig":0.16956567930489735,"earningOrig":847.6954237288137,"marginInclOrig":0.1975277646129542,"purchaseLatest":3268.64,"profitLatest":1023,"marginLatest":0.23837677725118483,"earningLatest":1143,"marginInclLatest":0.2663388625592417,"fuelType":"Petrol","months":{"Apr":{"count":1,"sales":4291.525423728814},"May":{"count":1,"sales":4291.525423728814},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"34B19","brand":"Exide","party":"","partNo":"33610A76M00","models":"Alto K10, Alto 800, Ignis, Wagon R, Swift, Dzire, Baleno, S Cross","schemePct":0.038266038253282904,"incentiveAmt":120,"salePrice":3776.2711864406783,"purchaseOrig":3135.94,"profitOrig":640.3311864406783,"marginOrig":0.16956705565529628,"earningOrig":760.3311864406783,"marginInclOrig":0.2013444344703771,"purchaseLatest":2838.14,"profitLatest":938,"marginLatest":0.24839317773788147,"earningLatest":1058,"marginInclLatest":0.28017055655296225,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":2,"sales":7552.542372881357},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"34B19","brand":"Exide","party":"","partNo":"33610M67P10","models":"Alto K10, Alto 800","schemePct":0.038266038253282904,"incentiveAmt":120,"salePrice":3776.2711864406783,"purchaseOrig":3135.94,"profitOrig":640.3311864406783,"marginOrig":0.16956705565529628,"earningOrig":760.3311864406783,"marginInclOrig":0.2013444344703771,"purchaseLatest":3135.94,"profitLatest":640,"marginLatest":0.16947935368043088,"earningLatest":760,"marginInclLatest":0.20125673249551165,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"40B20","brand":"Amaron","party":"","partNo":"33610M68KA1","models":"Vitara Brezza, XL6, Wagon R, Swift, Dzire","schemePct":0,"incentiveAmt":0,"salePrice":4470.338983050848,"purchaseOrig":3712.32,"profitOrig":758.0189830508475,"marginOrig":0.1695663317535545,"earningOrig":758.0189830508475,"marginInclOrig":0.1695663317535545,"purchaseLatest":3712.32,"profitLatest":758,"marginLatest":0.16956208530805686,"earningLatest":758,"marginInclLatest":0.16956208530805686,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":1,"sales":4470.338983050848},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"42B20","brand":"Amaron","party":"","partNo":"33610M68KA0","models":"Ertiga, Ciaz, Ignis, XL6","schemePct":0,"incentiveAmt":0,"salePrice":4761.016949152543,"purchaseOrig":3693.6,"profitOrig":1067.416949152543,"marginOrig":0.22419935920256331,"earningOrig":1067.416949152543,"marginInclOrig":0.22419935920256331,"purchaseLatest":1764,"profitLatest":2997,"marginLatest":0.6294873620505517,"earningLatest":2997,"marginInclLatest":0.6294873620505517,"fuelType":"Petrol","months":{"Apr":{"count":19,"sales":90459.32203389832},"May":{"count":26,"sales":123786.44067796612},"Jun":{"count":15,"sales":71415.25423728814},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"42B20","brand":"Amaron","party":"","partNo":"90900M10194","models":"Ertiga, Ciaz, Ignis, XL6","schemePct":0,"incentiveAmt":0,"salePrice":4761.016949152543,"purchaseOrig":4001.47,"profitOrig":759.5469491525432,"marginOrig":0.1595346030615879,"earningOrig":759.5469491525432,"marginInclOrig":0.1595346030615879,"purchaseLatest":4001.47,"profitLatest":760,"marginLatest":0.15962976148095406,"earningLatest":760,"marginInclLatest":0.15962976148095406,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"DIN50","brand":"Amaron","party":"","partNo":"33610M79M00","models":"XL6, Baleno, Swift, Dzire, Ciaz","schemePct":0,"incentiveAmt":0,"salePrice":6739.830508474577,"purchaseOrig":5228.76,"profitOrig":1511.0705084745769,"marginOrig":0.22420007544322904,"earningOrig":1511.0705084745769,"marginInclOrig":0.22420007544322904,"purchaseLatest":5044.16,"profitLatest":1696,"marginLatest":0.2516383754558028,"earningLatest":1696,"marginInclLatest":0.2516383754558028,"fuelType":"Diesel","months":{"Apr":{"count":2,"sales":13479.661016949154},"May":{"count":2,"sales":13479.661016949154},"Jun":{"count":6,"sales":40438.98305084746},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"DIN55","brand":"Amaron","party":"","partNo":"33610M79M01","models":"Invicto","schemePct":0,"incentiveAmt":0,"salePrice":7712.7118644067805,"purchaseOrig":6482.25,"profitOrig":1230.4618644067805,"marginOrig":0.1595368640808703,"earningOrig":1230.4618644067805,"marginInclOrig":0.1595368640808703,"purchaseLatest":6482.25,"profitLatest":1230,"marginLatest":0.1594769805515877,"earningLatest":1230,"marginInclLatest":0.1594769805515877,"fuelType":"","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"DIN65","brand":"Amaron","party":"","partNo":"33610M60M00","models":"Ertiga, Dzire, Ritz","schemePct":0,"incentiveAmt":0,"salePrice":7896.610169491526,"purchaseOrig":6126.19,"profitOrig":1770.4201694915264,"marginOrig":0.22420002146383355,"earningOrig":1770.4201694915264,"marginInclOrig":0.22420002146383355,"purchaseLatest":5738.01,"profitLatest":2159,"marginLatest":0.2734084567503756,"earningLatest":2159,"marginInclLatest":0.2734084567503756,"fuelType":"Diesel","months":{"Apr":{"count":0,"sales":0},"May":{"count":2,"sales":15793.220338983052},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"50B24","brand":"Amaron","party":"","partNo":"33610M50KA2","models":"Eeco Ambulance & Celerio Diesel","schemePct":0,"incentiveAmt":0,"salePrice":6348.305084745763,"purchaseOrig":5335.53,"profitOrig":1012.7750847457637,"marginOrig":0.15953472166599933,"earningOrig":1012.7750847457637,"marginInclOrig":0.15953472166599933,"purchaseLatest":5335.53,"profitLatest":1013,"marginLatest":0.15957015084768386,"earningLatest":1013,"marginInclLatest":0.15957015084768386,"fuelType":"","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"38B20","brand":"Amaron","party":"","partNo":"33610M68KA2","models":"Vitara Brezza, XL6, Wagon R, Swift, Dzire","schemePct":0,"incentiveAmt":0,"salePrice":4249.152542372882,"purchaseOrig":3571.26,"profitOrig":677.8925423728815,"marginOrig":0.15953593936976468,"earningOrig":677.8925423728815,"marginInclOrig":0.15953593936976468,"purchaseLatest":3571.26,"profitLatest":678,"marginLatest":0.1595612285600319,"earningLatest":678,"marginInclLatest":0.1595612285600319,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"34B20","brand":"Tata Green","party":"","partNo":"33610M71P00","models":"Dzire, Swift","schemePct":0,"incentiveAmt":0,"salePrice":4083.0508474576272,"purchaseOrig":3390.7,"profitOrig":692.3508474576274,"marginOrig":0.16956704026567046,"earningOrig":692.3508474576274,"marginInclOrig":0.16956704026567046,"purchaseLatest":3065.05,"profitLatest":1018,"marginLatest":0.2493233706932337,"earningLatest":1018,"marginInclLatest":0.2493233706932337,"fuelType":"Petrol","months":{"Apr":{"count":61,"sales":249066.10169491527},"May":{"count":64,"sales":261315.25423728814},"Jun":{"count":65,"sales":265398.30508474575},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"34B19","brand":"Tata Green","party":"","partNo":"33610M53M10","models":"Alto 800, Alto K10, Spresso","schemePct":0,"incentiveAmt":0,"salePrice":4010.169491525424,"purchaseOrig":3330.18,"profitOrig":679.989491525424,"marginOrig":0.16956627218934917,"earningOrig":679.989491525424,"marginInclOrig":0.16956627218934917,"purchaseLatest":2644,"profitLatest":1366,"marginLatest":0.34063398140321216,"earningLatest":1366,"marginInclLatest":0.34063398140321216,"fuelType":"Petrol","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"M42","brand":"Tata Green","party":"","partNo":"33610A75TB01","models":"Petrol Swift","schemePct":0,"incentiveAmt":0,"salePrice":4497.457627118644,"purchaseOrig":3734.84,"profitOrig":762.6176271186441,"marginOrig":0.16956638402110422,"earningOrig":762.6176271186441,"marginInclOrig":0.16956638402110422,"purchaseLatest":3734.84,"profitLatest":763,"marginLatest":0.16965140380629357,"earningLatest":763,"marginInclLatest":0.16965140380629357,"fuelType":"","months":{"Apr":{"count":0,"sales":0},"May":{"count":0,"sales":0},"Jun":{"count":0,"sales":0},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}},{"size":"M42","brand":"Tata Green","party":"","partNo":"33610A75TB0","models":"Petrol Swift","schemePct":0,"incentiveAmt":0,"salePrice":3821.1864406779664,"purchaseOrig":3258,"profitOrig":563.1864406779664,"marginOrig":0.14738522954091823,"earningOrig":563.1864406779664,"marginInclOrig":0.14738522954091823,"purchaseLatest":3258,"profitLatest":563,"marginLatest":0.14733643823464182,"earningLatest":563,"marginInclLatest":0.14733643823464182,"fuelType":"","months":{"Apr":{"count":0,"sales":0},"May":{"count":5,"sales":19105.93220338983},"Jun":{"count":3,"sales":11463.5593220339},"Jul":{"count":null,"sales":null},"Aug":{"count":null,"sales":null},"Sep":{"count":null,"sales":null},"Oct":{"count":null,"sales":null},"Nov":{"count":null,"sales":null},"Dec":{"count":null,"sales":null},"Jan":{"count":null,"sales":null},"Feb":{"count":null,"sales":null},"Mar":{"count":null,"sales":null}}}]}</script>
+<script>
+// ============ AM Motors — aggregation engine ============
+// Pure functions: raw SKU rows (per product) -> full derived dataset used by the UI.
+// Used both for the data embedded at build time and for re-uploaded workbooks.
+
+const MONTHS = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+
+function num(v){ return (typeof v === 'number' && !isNaN(v)) ? v : 0; }
+function normRange(v, min, max){ return max > min ? (v - min) / (max - min) : (max > 0 ? 1 : 0); }
+
+function pickBasis(row, priceBasis){
+  const hasLatest = row.purchaseLatest !== null && row.purchaseLatest !== undefined;
+  const useLatest = priceBasis === 'latest' && hasLatest;
+  return {
+    purchasePrice: useLatest ? row.purchaseLatest : row.purchaseOrig,
+    profitPerUnit: useLatest ? row.earningLatest : row.earningOrig,     // "Total Earning" — incl. scheme incentive
+    rawProfitPerUnit: useLatest ? row.profitLatest : row.profitOrig,     // profit before incentive
+    margin: useLatest ? row.marginInclLatest : row.marginInclOrig,       // yellow-highlighted "true" margin incl. incentive
+    rawMargin: useLatest ? row.marginLatest : row.marginOrig,
+    usedLatest: useLatest,
+    hasLatest,
+  };
+}
+
+function computeRow(raw, priceBasis){
+  const basis = pickBasis(raw, priceBasis);
+  let totalUnits = 0, totalSales = 0, activeMonths = [];
+  MONTHS.forEach(mn=>{
+    const m = raw.months[mn];
+    if (m && m.count !== null && m.count !== undefined){
+      totalUnits += num(m.count);
+      totalSales += num(m.sales);
+      activeMonths.push(mn);
+    }
+  });
+  return Object.assign({}, raw, basis, { totalUnits, totalSales, activeMonths });
+}
+
+function activeMonthCount(rawRows){
+  const set = new Set();
+  rawRows.forEach(r => MONTHS.forEach(mn => {
+    const m = r.months[mn];
+    if (m && m.count !== null && m.count !== undefined) set.add(mn);
+  }));
+  return set.size || 1;
+}
+
+function scoreCompanies(companies){
+  if (companies.length === 0) return;
+  // Scheme/incentive is deliberately left out of the score — it's shown as its own
+  // informational figure (Incentive Slab % / Incentive Amount per unit) instead.
+  const margins = companies.map(c=>c.margin), vols = companies.map(c=>c.avgMonthly),
+        ppus = companies.map(c=>c.profitPerUnit);
+  const mn=Math.min(...margins), mx=Math.max(...margins);
+  const vn=Math.min(...vols), vx=Math.max(...vols);
+  const pn=Math.min(...ppus), px=Math.max(...ppus);
+  companies.forEach(c=>{
+    const b = {
+      margin: normRange(c.margin, mn, mx) * 40,
+      volume: normRange(c.avgMonthly, vn, vx) * 40,
+      profit: normRange(c.profitPerUnit, pn, px) * 20,
+    };
+    c.breakdown = b;
+    c.score = b.margin + b.volume + b.profit;
+    if (c.score >= 70) c.verdict = 'Increase Procurement';
+    else if (c.score >= 45) c.verdict = 'Maintain Current Level';
+    else if (c.score >= 25) c.verdict = 'Reduce Procurement';
+    else c.verdict = 'Avoid / Phase Out';
+  });
+}
+
+function classify(avgMonthly){
+  if (avgMonthly <= 0) return 'Dead Stock';
+  if (avgMonthly >= 5) return 'Fast-Moving';
+  if (avgMonthly >= 2) return 'Moderate';
+  return 'Slow-Moving';
+}
+function focusText(cls){
+  return {
+    'Fast-Moving': 'Priority purchase focus — keep well stocked',
+    'Moderate': 'Maintain steady stock level',
+    'Slow-Moving': 'Purchase minimal / on-demand only',
+    'Dead Stock': 'No recent sales — do not purchase',
+  }[cls];
+}
+
+function computeTopBrands(brandList, mode){
+  if (!brandList || brandList.length === 0) return [];
+  const maxUnits = Math.max(...brandList.map(b=>b.avgMonthly), 0);
+  const scored = brandList.map(b=>{
+    let score;
+    if (mode === 'margin') score = b.margin;
+    else if (mode === 'volume') score = b.avgMonthly;
+    else if (mode === 'profit') score = b.profitAmount;
+    else if (mode === 'perunit') score = b.profitPerUnit;
+    else { // overall: 60% margin + 40% volume ratio
+      const volRatio = maxUnits ? b.avgMonthly / maxUnits : 0;
+      score = 0.6*b.margin + 0.4*volRatio;
+    }
+    return Object.assign({}, b, {score});
+  });
+  return scored.sort((a,b)=>b.score-a.score).slice(0,2);
+}
+
+function buildDataset(rawRows, priceBasis, unitNoun, sizeNoun){
+  const numMonths = activeMonthCount(rawRows);
+  const rows = rawRows.map(r => {
+    const c = computeRow(r, priceBasis);
+    c.avgMonthly = c.totalUnits / numMonths;
+    return c;
+  });
+
+  // ---- companies ----
+  const byBrand = {};
+  rows.forEach(r=>{
+    byBrand[r.brand] = byBrand[r.brand] || {name:r.brand, units:0, revenue:0, profit:0, profitRaw:0, incentiveSlabUnitsSum:0, incentiveAmtUnitsSum:0, incentiveMonthly:0};
+    const b = byBrand[r.brand];
+    b.units += r.totalUnits;
+    b.revenue += r.totalSales;
+    b.profit += r.totalUnits * r.profitPerUnit;          // Total Earning (incl. incentive)
+    b.profitRaw += r.totalUnits * r.rawProfitPerUnit;      // Profit w/o discount (excl. incentive)
+    b.incentiveSlabUnitsSum += r.schemePct * r.totalUnits;
+    b.incentiveAmtUnitsSum += (r.incentiveAmt||0) * r.totalUnits;
+    b.incentiveMonthly += (r.incentiveAmt||0) * r.avgMonthly;
+  });
+  const companies = Object.values(byBrand).map(b=>({
+    name: b.name,
+    units: b.units,
+    avgMonthly: b.units / numMonths,
+    revenue: b.revenue,
+    profit: b.profit,
+    profitRaw: b.profitRaw,
+    margin: b.revenue > 0 ? b.profit / b.revenue : 0,
+    profitPerUnit: b.units > 0 ? b.profit / b.units : 0,
+    profitPerUnitRaw: b.units > 0 ? b.profitRaw / b.units : 0,
+    incentiveSlabPct: b.units > 0 ? b.incentiveSlabUnitsSum / b.units : 0,
+    incentiveAmtPerUnit: b.units > 0 ? b.incentiveAmtUnitsSum / b.units : 0,
+    incentiveMonthly: b.incentiveMonthly,
+  }));
+  scoreCompanies(companies);
+
+  // ---- sizes ----
+  const bySize = {};
+  rows.forEach(r=>{
+    bySize[r.size] = bySize[r.size] || {size:r.size, units:0, revenue:0, profit:0, brands:new Set(), models:new Set()};
+    const s = bySize[r.size];
+    s.units += r.totalUnits;
+    s.revenue += r.totalSales;
+    s.profit += r.totalUnits * r.profitPerUnit;
+    s.brands.add(r.brand);
+    (r.models||'').split(',').map(x=>x.trim()).filter(Boolean).forEach(m=>s.models.add(m));
+  });
+  const sizeBrandData = {}; // size -> [{brand, margin, avgMonthly, profitAmount, profitPerUnit, profitPerUnitRaw, incentiveSlabPct, incentiveAmt}]
+  rows.forEach(r=>{
+    sizeBrandData[r.size] = sizeBrandData[r.size] || [];
+    sizeBrandData[r.size].push({
+      brand: r.brand, margin: r.margin, avgMonthly: r.avgMonthly,
+      profitAmount: r.avgMonthly * r.profitPerUnit, profitPerUnit: r.profitPerUnit,
+      profitPerUnitRaw: r.rawProfitPerUnit,
+      incentiveSlabPct: r.schemePct, incentiveAmt: r.incentiveAmt||0,
+    });
+  });
+  const sizes = Object.values(bySize).map(s=>{
+    const avgMonthly = s.units / numMonths;
+    const cls = classify(avgMonthly);
+    const top2 = computeTopBrands(sizeBrandData[s.size], 'overall');
+    return {
+      size: s.size,
+      units: s.units,
+      avgMonthly,
+      revenue: s.revenue,
+      profit: s.profit,
+      margin: s.revenue > 0 ? s.profit / s.revenue : 0,
+      cls,
+      focus: focusText(cls),
+      currentBrands: [...s.brands].join(', '),
+      models: [...s.models].join(', '),
+      bestBrand: top2[0] ? top2[0].brand : '—',
+    };
+  });
+
+  // ---- purchase plan (per brand+size) ----
+  const avgMargin = rows.length ? rows.reduce((a,r)=>a+r.margin,0)/rows.length : 0;
+  const purchase = rows.map(r=>{
+    const recQty = r.totalUnits > 0 ? Math.max(1, Math.ceil(r.avgMonthly * 1.15)) : 0;
+    const cls = classify(r.avgMonthly);
+    const reasons = [];
+    let priority = 'None';
+    if (r.totalUnits === 0){
+      priority = 'None';
+      reasons.push('No recent demand — do not purchase.');
+    } else {
+      let pts = 0;
+      if (r.margin > avgMargin) { pts += 1; reasons.push('High margin'); }
+      if (cls === 'Fast-Moving') { pts += 2; reasons.push('Fast-moving'); }
+      else if (cls === 'Moderate') { pts += 1; reasons.push('Steady baseline demand'); }
+      priority = pts >= 3 ? 'High' : pts === 2 ? 'Medium' : 'Low';
+      if (r.incentiveAmt > 0) reasons.push(`Incentive: ₹${Math.round(r.incentiveAmt)}/unit @ ${(r.schemePct*100).toFixed(1)}% slab`);
+      reasons.push('qty includes 15% buffer over trailing monthly average.');
+    }
+    return {
+      company: r.brand, size: r.size, price: r.purchasePrice, margin: r.margin,
+      avgMonthly: r.avgMonthly, monthlyProfit: Math.round(r.avgMonthly * r.profitPerUnit),
+      recQty, priority, reason: reasons.join('; '),
+    };
+  });
+
+  // ---- SKU records (brand analysis + matrix) ----
+  const skuRecords = rows.map(r=>({
+    brand: r.brand, size: r.size, salePrice: r.salePrice, purchasePrice: r.purchasePrice,
+    incentiveSlabPct: r.schemePct, incentiveAmt: r.incentiveAmt||0,
+    profitPerUnit: r.profitPerUnit, profitPerUnitRaw: r.rawProfitPerUnit, margin: r.margin,
+    avgMonthly: r.avgMonthly, units4mo: r.totalUnits, avgSaleValue: r.avgMonthly * r.salePrice,
+    partNo: r.partNo, party: r.party,
+  }));
+
+  // ---- fitment records ----
+  const fitmentRecords = [];
+  rows.forEach(r=>{
+    const models = (r.models||'').split(',').map(x=>x.trim()).filter(Boolean);
+    models.forEach(model=>{
+      fitmentRecords.push({
+        model, fuelType: r.fuelType||'', size: r.size, brand: r.brand,
+        salePrice: r.salePrice, purchasePrice: r.purchasePrice,
+        incentiveSlabPct: r.schemePct, incentiveAmt: r.incentiveAmt||0,
+        profitPerUnit: r.profitPerUnit, profitPerUnitRaw: r.rawProfitPerUnit, margin: r.margin, avgMonthly: r.avgMonthly,
+        avgSaleValue: r.avgMonthly * r.salePrice,
+      });
+    });
+  });
+
+  // ---- price watch (latest vs original) ----
+  const priceWatch = rows.filter(r=>r.hasLatest).map(r=>{
+    const deltaPrice = r.purchaseLatest - r.purchaseOrig;
+    const deltaPct = r.purchaseOrig ? deltaPrice / r.purchaseOrig : 0;
+    const marginDeltaPts = (r.marginInclLatest - r.marginInclOrig);
+    const profitRawDelta = (r.profitLatest!=null && r.profitOrig!=null) ? (r.profitLatest - r.profitOrig) : null;
+    return {
+      brand: r.brand, size: r.size, partNo: r.partNo,
+      purchaseOrig: r.purchaseOrig, purchaseLatest: r.purchaseLatest, deltaPrice, deltaPct,
+      marginOrig: r.marginInclOrig, marginLatest: r.marginInclLatest, marginDeltaPts,
+      profitRawOrig: r.profitOrig, profitRawLatest: r.profitLatest, profitRawDelta,
+      avgMonthly: r.avgMonthly,
+    };
+  });
+
+  // ---- KPIs ----
+  const total_revenue = rows.reduce((a,r)=>a+r.totalSales,0);
+  const total_profit = rows.reduce((a,r)=>a+r.totalUnits*r.profitPerUnit,0);
+  const total_units = rows.reduce((a,r)=>a+r.totalUnits,0);
+  const weighted_margin = total_revenue > 0 ? total_profit/total_revenue : 0;
+  const fast_sizes = sizes.filter(s=>s.cls==='Fast-Moving').length;
+  const dead_sizes = sizes.filter(s=>s.cls==='Dead Stock').length;
+
+  return {
+    numMonths,
+    kpis: {total_revenue, total_profit, weighted_margin, total_units, fast_sizes, dead_sizes},
+    companies, sizes, purchase, sizeBrandData, skuRecords, fitmentRecords, priceWatch,
+    unitNoun, sizeNoun,
+  };
+}
+
+
+
+</script>
+<script>
+/* ===================== AM Motors dashboard — app logic ===================== */
+const fmtINR = n => '₹' + Math.round(n||0).toLocaleString('en-IN');
+const fmtPct = n => ((n||0)*100).toFixed(1) + '%';
+const fmtNum = n => Math.round((n||0)*10)/10;
+
+let RAW = JSON.parse(document.getElementById('raw-data-json').textContent);
+let currentProduct = 'tyre';
+let priceBasis = 'orig';
+let sourceLabel = 'bundled workbook';
+let lastUpdated = null;
+let DS = { tyre:null, battery:null }; // derived datasets, rebuilt on toggle/upload
+
+// Price/margin history built up across uploads in this session — one array of
+// {label, purchasePrice, margin} points per SKU (brand+size+partNo), starting
+// with "Original" and gaining one point per upload that carries a Latest price.
+let priceHistory = { tyre:{}, battery:{} };
+let latestLabel = { tyre:'18 Jul 2026', battery:'18 Jul 2026' }; // from the bundled workbook's own header text
+
+function skuKey(r){ return `${r.brand}|${r.size}|${r.partNo||''}`; }
+function recordHistory(product, rawRows, label){
+  rawRows.forEach(r=>{
+    const key = skuKey(r);
+    const hist = priceHistory[product][key] = priceHistory[product][key] || [];
+    if (hist.length === 0){
+      hist.push({label:'Original', purchasePrice:r.purchaseOrig, margin:r.marginInclOrig});
+    }
+    if (r.purchaseLatest !== null && r.purchaseLatest !== undefined){
+      const point = {label, purchasePrice:r.purchaseLatest, margin:r.marginInclLatest};
+      const existingIdx = hist.findIndex(h=>h.label===label);
+      if (existingIdx >= 0) hist[existingIdx] = point; else hist.push(point);
+    }
+  });
+}
+recordHistory('tyre', RAW.tyre, latestLabel.tyre);
+recordHistory('battery', RAW.battery, latestLabel.battery);
+
+function rebuildDatasets(){
+  DS.tyre = buildDataset(RAW.tyre, priceBasis, 'Tyre', 'Tyre Size');
+  DS.battery = buildDataset(RAW.battery, priceBasis, 'Battery', 'Battery Part');
+}
+rebuildDatasets();
+
+function data(){ return DS[currentProduct]; }
+function unitLabel(){ return currentProduct === 'tyre' ? 'Tyre' : 'Battery'; }
+function sizeNounLabel(){ return currentProduct === 'tyre' ? 'Tyre Size' : 'Battery Part'; }
+
+/* ---------------- Tabs ---------------- */
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section.view').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  });
+});
+function jumpToTab(view){
+  const btn = document.querySelector(`#tabs button[data-view="${view}"]`);
+  if (btn) btn.click();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------------- Global toggles ---------------- */
+document.querySelectorAll('#global-toggle .ptoggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#global-toggle .ptoggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentProduct = btn.dataset.product;
+    renderEverything();
+  });
+});
+document.querySelectorAll('#basis-toggle .ptoggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#basis-toggle .ptoggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    priceBasis = btn.dataset.basis;
+    rebuildDatasets();
+    renderEverything();
+    showToast(priceBasis === 'latest'
+      ? `Switched to the latest uploaded purchase price (${latestLabel[currentProduct]}) — every margin, score and recommendation just recalculated.`
+      : 'Switched back to Original purchase price basis.');
+  });
+});
+
+/* ---------------- Toast ---------------- */
+let toastTimer;
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 4800);
+}
+
+/* ---------------- Upload handling ---------------- */
+document.getElementById('upload-trigger').addEventListener('click', ()=> document.getElementById('file-input').click());
+document.getElementById('file-input').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array', cellDates:false});
+    const parsed = parseWorkbook(wb);
+    if (parsed.tyre.length === 0 && parsed.battery.length === 0){
+      showToast('Could not find any recognisable rows in that file — check it matches the Tyre/Battery Purchase sheet layout.', true);
+      return;
+    }
+    lastUpdated = new Date();
+    const tyreLabel = parsed.tyreLabel || formatUploadStamp(lastUpdated);
+    const battLabel = parsed.battLabel || formatUploadStamp(lastUpdated);
+    recordHistory('tyre', parsed.tyre, tyreLabel);
+    recordHistory('battery', parsed.battery, battLabel);
+    latestLabel = { tyre: tyreLabel, battery: battLabel };
+    RAW = parsed;
+    rebuildDatasets();
+    sourceLabel = file.name;
+    renderEverything();
+    showToast(`Loaded "${file.name}" — ${parsed.tyre.length} tyre SKU rows, ${parsed.battery.length} battery SKU rows (latest price dated ${latestLabel.tyre}). Every tab has been recalculated.`);
+  } catch(err){
+    console.error(err);
+    showToast('Could not read that file: ' + err.message, true);
+  } finally {
+    e.target.value = '';
+  }
+});
+
+function extractDateLabel(headerText){
+  if (!headerText) return null;
+  const s = String(headerText);
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  // Try yyyy-mm-dd style first (must anchor on a 4-digit year) to avoid a d.m.y
+  // pattern greedily matching the tail of it (e.g. "2026-08-10" -> "26-08-10").
+  let m = s.match(/\b(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})\b/);
+  if (m){
+    const y=+m[1], mo=+m[2], d=+m[3];
+    if (mo>=1 && mo<=12) return `${d} ${MONTH_NAMES[mo-1]} ${y}`;
+  }
+  m = s.match(/\b(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{2,4})\b/);
+  if (m){
+    let d=+m[1], mo=+m[2], y=+m[3];
+    if (y < 100) y += 2000;
+    if (mo>=1 && mo<=12) return `${d} ${MONTH_NAMES[mo-1]} ${y}`;
+  }
+  return null;
+}
+function formatUploadStamp(date){
+  return date.toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) +
+    ', ' + date.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+}
+
+function cellHeaderMatch(h, ...needles){
+  const hl = (h||'').toString().toLowerCase();
+  return needles.every(n=>hl.includes(n));
+}
+
+// Parses a workbook into the same raw-row shape as the bundled dataset.
+// Position-based (matches the MSIL Tyre/Battery Purchase export layout), with a
+// light header sanity-check so an obviously different layout doesn't silently misparse.
+function parseWorkbook(wb){
+  const sheetNames = wb.SheetNames;
+  const findSheet = (kw) => sheetNames.find(n => n.toLowerCase().includes(kw));
+  const tyreName = findSheet('tyre') || sheetNames[0];
+  const battName = findSheet('batt') || sheetNames[1] || sheetNames[0];
+  const tyreParsed = tyreName ? parseSheet(wb.Sheets[tyreName], 'tyre') : {rows:[], dateLabel:null};
+  const battParsed = battName ? parseSheet(wb.Sheets[battName], 'battery') : {rows:[], dateLabel:null};
+  return { tyre: tyreParsed.rows, battery: battParsed.rows, tyreLabel: tyreParsed.dateLabel, battLabel: battParsed.dateLabel };
+}
+
+function parseSheet(sheet, kind){
+  if (!sheet) return {rows:[], dateLabel:null};
+  const grid = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:null});
+  if (grid.length < 2) return {rows:[], dateLabel:null};
+  const dateLabel = extractDateLabel(grid[0] && grid[0][16]);
+  const MONTHS = ['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+  const rows = [];
+  let lastModels = null;
+  for (let r=1; r<grid.length; r++){
+    const vals = grid[r];
+    if (!vals || vals.length === 0) continue;
+    let size, spec, models, brand, party, partNo;
+    if (kind === 'tyre'){
+      [size, spec, models, brand, party, partNo] = vals.slice(0,6);
+    } else {
+      let sno; [sno, brand, partNo, spec, size, models] = vals.slice(0,6);
+    }
+    if (size === null || size === undefined || String(size).trim() === '') continue;
+    if (brand === null || brand === undefined || String(brand).trim() === '') continue;
+    if (kind === 'tyre'){
+      if (models === null || models === undefined || String(models).trim() === '') models = lastModels;
+      else lastModels = models;
+    }
+    const g = (i) => vals[i] === undefined ? null : vals[i];
+    const rec = {
+      size: String(size).trim(), brand: String(brand).trim(),
+      party: party ? String(party).trim() : '', partNo: partNo ? String(partNo).trim() : '',
+      models: models ? String(models).trim() : '',
+      schemePct: Number(g(6))||0, incentiveAmt: Number(g(7))||0,
+      salePrice: Number(g(10))||0,
+      purchaseOrig: Number(g(11))||0, profitOrig: Number(g(12))||0,
+      marginOrig: Number(g(13))||0, earningOrig: Number(g(14))||0, marginInclOrig: Number(g(15))||0,
+      purchaseLatest: g(16)!==null ? Number(g(16)) : null,
+      profitLatest: g(17)!==null ? Number(g(17)) : null,
+      marginLatest: g(18)!==null ? Number(g(18)) : null,
+      earningLatest: g(19)!==null ? Number(g(19)) : null,
+      marginInclLatest: g(20)!==null ? Number(g(20)) : null,
+    };
+    if (kind === 'battery'){
+      const m = rec.models;
+      if (m.includes('|')){
+        const idx = m.indexOf('|');
+        rec.fuelType = m.slice(0,idx).trim();
+        rec.models = m.slice(idx+1).replace(/\\/g, ', ').trim();
+      } else rec.fuelType = '';
+    }
+    const months = {};
+    let mi = 21;
+    for (const mn of MONTHS){
+      months[mn] = { count: g(mi), sales: g(mi+1) };
+      mi += 2;
+    }
+    rec.months = months;
+    rows.push(rec);
+  }
+  return {rows, dateLabel};
+}
+
+/* ---------------- KPIs ---------------- */
+const arrowSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:-1px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+function renderKPIs(){
+  const d = data();
+  document.getElementById('app-title').textContent = `AM Motors — ${unitLabel()} Procurement Intelligence`;
+  document.getElementById('overview-title').textContent = `${unitLabel()} Procurement Decision Dashboard`;
+  document.getElementById('overview-sub').textContent =
+    `${d.numMonths}-month trailing sales (${priceBasis==='latest' ? `Latest ${latestLabel[currentProduct]}` : 'Original'} purchase price basis) — ${d.companies.length} brands, ${d.purchase.length} SKUs, ${d.sizes.length} ${sizeNounLabel().toLowerCase()}s.`;
+  document.getElementById('verdict-title').textContent = `Procurement Verdict by ${unitLabel()} Company`;
+  document.getElementById('months-note-inline').textContent = data().numMonths;
+  const badge = document.getElementById('latest-label-badge');
+  if (badge) badge.textContent = `(${latestLabel[currentProduct]})`;
+
+  const kpiDefs = [
+    {label:'Total Revenue', val: fmtINR(d.kpis.total_revenue), cls:'', goto:'companies'},
+    {label:'Total Profit', val: fmtINR(d.kpis.total_profit), cls:'emerald', goto:'companies'},
+    {label:'Weighted Margin', val: fmtPct(d.kpis.weighted_margin), cls:'', goto:'companies'},
+    {label:'Units Sold', val: d.kpis.total_units.toLocaleString('en-IN'), cls:'', goto:'purchase'},
+    {label:`Fast-Moving ${currentProduct==='tyre'?'Sizes':'Parts'}`, val: d.kpis.fast_sizes, cls:'emerald', goto:'sizes'},
+    {label:`Dead-Stock ${currentProduct==='tyre'?'Sizes':'Parts'}`, val: d.kpis.dead_sizes, cls: d.kpis.dead_sizes>0?'amber':'', goto:'sizes'},
+  ];
+  document.getElementById('kpi-grid').innerHTML = kpiDefs.map(k=>`
+    <div class="kpi ${k.cls}" tabindex="0" role="button" data-goto="${k.goto}">
+      <div class="label">${k.label}</div>
+      <div class="value">${k.val}</div>
+      <div class="goto">Details ${arrowSvg}</div>
+    </div>`).join('');
+  document.querySelectorAll('.kpi').forEach(el=>{
+    el.addEventListener('click', ()=>jumpToTab(el.dataset.goto));
+    el.addEventListener('keypress', e=>{ if(e.key==='Enter') jumpToTab(el.dataset.goto); });
+  });
+
+  const statusEl = document.getElementById('data-status');
+  if (lastUpdated){
+    statusEl.innerHTML = `Source: <b>${sourceLabel}</b> · Last updated: <b>${formatUploadStamp(lastUpdated)}</b>`;
+  } else {
+    statusEl.innerHTML = `Source: <b>${sourceLabel}</b> · Last updated: <b>on open</b>`;
+  }
+}
+
+/* ---------------- Key Insights (own analysis) ---------------- */
+function renderInsights(){
+  const d = data();
+  const items = [];
+  const companies = [...d.companies].sort((a,b)=>b.score-a.score);
+  const top = companies[0], bottom = companies[companies.length-1];
+
+  if (top){
+    items.push({tag:'Opportunity', cls:'good',
+      text: `<b>${top.name}</b> is the strongest ${unitLabel().toLowerCase()} brand right now — ${fmtPct(top.margin)} margin, ${fmtNum(top.avgMonthly)} units/mo, AI Score ${fmtNum(top.score)}. Push procurement here first.`});
+  }
+  if (bottom && companies.length > 1 && bottom.score < 25){
+    items.push({tag:'Phase out', cls:'bad',
+      text: `<b>${bottom.name}</b> scores lowest (${fmtNum(bottom.score)}) — ${fmtPct(bottom.margin)} margin on only ${fmtNum(bottom.avgMonthly)} units/mo. Consider trimming stock unless a specific model needs it.`});
+  }
+
+  // fast-moving sizes with only 1 brand (concentration risk)
+  const thinFast = d.sizes.filter(s=>s.cls==='Fast-Moving' && s.currentBrands.split(',').length===1);
+  if (thinFast.length){
+    items.push({tag:'Risk', cls:'warn',
+      text: `${thinFast.length} fast-moving ${currentProduct==='tyre'?'size':'part'}${thinFast.length>1?'s are':' is'} carried by a single brand only (${thinFast.slice(0,3).map(s=>s.size).join(', ')}${thinFast.length>3?'…':''}) — a single vendor delay would leave a gap on your best sellers. Worth a second source.`});
+  }
+
+  // dead stock
+  const dead = d.sizes.filter(s=>s.cls==='Dead Stock');
+  if (dead.length){
+    items.push({tag:'Cleanup', cls:'warn',
+      text: `${dead.length} ${currentProduct==='tyre'?'size':'part'}${dead.length>1?'s':''} sold zero units this period: ${dead.slice(0,5).map(s=>s.size).join(', ')}${dead.length>5?'…':''}. Stop replenishing these until demand returns.`});
+  }
+
+  // incentive: brands with 0 incentive slab while peers earn one
+  const maxIncentive = Math.max(...d.companies.map(c=>c.incentiveSlabPct||0), 0);
+  if (maxIncentive > 0){
+    const noIncentive = d.companies.filter(c=>(c.incentiveSlabPct||0)===0 && c.units>0);
+    if (noIncentive.length){
+      items.push({tag:'Incentive', cls:'warn',
+        text: `${noIncentive.map(c=>c.name).join(', ')} currently earn no incentive slab while other brands do — worth checking with these vendors whether one applies.`});
+    }
+  }
+  const totalIncentiveMonthly = d.companies.reduce((a,c)=>a+(c.incentiveMonthly||0),0);
+  if (totalIncentiveMonthly > 0){
+    items.push({tag:'Incentive', cls:'good',
+      text: `Current incentive amounts are worth roughly <b>${fmtINR(totalIncentiveMonthly)}/month</b> across all brands at today's volumes.`});
+  }
+
+  // price watch highlights
+  if (d.priceWatch && d.priceWatch.length){
+    const risers = [...d.priceWatch].filter(p=>p.deltaPrice>0).sort((a,b)=>b.deltaPct-a.deltaPct).slice(0,3);
+    const fallers = [...d.priceWatch].filter(p=>p.deltaPrice<0).sort((a,b)=>a.deltaPct-b.deltaPct).slice(0,3);
+    if (risers.length){
+      items.push({tag:'Price ↑', cls:'bad',
+        text: `Biggest purchase-price increases (original → latest): ${risers.map(p=>`${p.brand} ${p.size} (+${fmtPct(p.deltaPct)})`).join(', ')}. Check these margins before the next order.`});
+    }
+    if (fallers.length){
+      items.push({tag:'Price ↓', cls:'good',
+        text: `Biggest purchase-price drops: ${fallers.map(p=>`${p.brand} ${p.size} (${fmtPct(p.deltaPct)})`).join(', ')} — cheaper than before, margin has improved.`});
+    }
+  }
+
+  // top purchase priority
+  const highPriority = [...d.purchase].filter(p=>p.priority==='High').sort((a,b)=>b.monthlyProfit-a.monthlyProfit).slice(0,3);
+  if (highPriority.length){
+    items.push({tag:'Buy first', cls:'good',
+      text: `Highest-value restock this cycle: ${highPriority.map(p=>`${p.company} ${p.size} (${fmtINR(p.monthlyProfit)}/mo profit)`).join(', ')}.`});
+  }
+
+  document.getElementById('insight-list').innerHTML = items.map(it=>
+    `<li class="${it.cls}"><span class="itag">${it.tag}</span><span>${it.text}</span></li>`
+  ).join('') || '<li>Not enough data to generate insights yet.</li>';
+}
+
+/* ---------------- Verdict cards ---------------- */
+const verdictClass = v => v.includes('Increase') ? 'v-increase' : v.includes('Maintain') ? 'v-maintain' : v.includes('Reduce') ? 'v-reduce' : 'v-avoid';
+const verdictColor = v => v.includes('Increase') ? 'var(--emerald)' : v.includes('Maintain') ? 'var(--royal)' : v.includes('Reduce') ? 'var(--amber)' : 'var(--red)';
+function miniBreakdown(b){
+  return `<div class="mini-track">
+    <div class="mini-seg" style="width:${b.margin}%; background:var(--emerald);"></div>
+    <div class="mini-seg" style="width:${b.volume}%; background:var(--royal);"></div>
+    <div class="mini-seg" style="width:${b.profit}%; background:var(--grey);"></div>
+  </div>`;
+}
+function renderVerdictGrid(){
+  const sorted = [...data().companies].sort((a,b)=>b.score-a.score);
+  document.getElementById('verdict-grid').innerHTML = sorted.map(c=>`
+    <div class="vcard" style="border-top:3px solid ${verdictColor(c.verdict)}">
+      <div class="name">${c.name}</div>
+      <div class="score" style="color:${verdictColor(c.verdict)}">${fmtNum(c.score)}</div>
+      <span class="verdict ${verdictClass(c.verdict)}">${c.verdict}</span>
+      ${miniBreakdown(c.breakdown)}
+    </div>`).join('');
+}
+
+/* ---------------- Company table ---------------- */
+function renderCompanyBars(){
+  const list = [...data().companies].sort((a,b)=>b.score-a.score);
+  document.getElementById('company-bars').innerHTML = list.map(c=>{
+    const b = c.breakdown;
+    return `<div class="stack-row">
+      <div class="lbl">${c.name}</div>
+      <div class="stack-track">
+        <div class="stack-seg" style="width:${b.margin}%; background:var(--emerald);"></div>
+        <div class="stack-seg" style="width:${b.volume}%; background:var(--royal);"></div>
+        <div class="stack-seg" style="width:${b.profit}%; background:var(--grey);"></div>
+      </div>
+      <div class="val">${fmtNum(c.score)}</div>
+    </div>`;
+  }).join('');
+}
+let companySort = {key:'score', dir:-1};
+function refreshCompanies(){
+  const list = [...data().companies].sort((a,b)=>{
+    const va=a[companySort.key], vb=b[companySort.key];
+    if (typeof va==='string') return va.localeCompare(vb)*companySort.dir;
+    return (va-vb)*companySort.dir;
+  });
+  document.querySelector('#company-table tbody').innerHTML = list.map(c=>`
+    <tr>
+      <td><b>${c.name}</b></td>
+      <td class="num">${c.units.toLocaleString('en-IN')}</td>
+      <td class="num">${fmtNum(c.avgMonthly)}</td>
+      <td class="num">${fmtINR(c.revenue)}</td>
+      <td class="num">${fmtINR(c.profit)}</td>
+      <td class="num">${fmtPct(c.margin)}</td>
+      <td class="num">${fmtINR(c.profitPerUnit)}</td>
+      <td class="num">${fmtINR(c.profitPerUnitRaw)}</td>
+      <td class="num">${fmtPct(c.incentiveSlabPct)}</td>
+      <td class="num">${fmtINR(c.incentiveAmtPerUnit)}</td>
+      <td class="num"><b>${fmtNum(c.score)}</b></td>
+      <td><span class="verdict ${verdictClass(c.verdict)}" style="padding:2px 8px;">${c.verdict}</span></td>
+    </tr>`).join('');
+}
+document.querySelectorAll('#company-table th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    companySort.dir = (companySort.key===key) ? -companySort.dir : -1;
+    companySort.key = key;
+    refreshCompanies();
+  });
+});
+
+/* ---------------- Size table ---------------- */
+const clsPillMap = {'Fast-Moving':'pill-fast','Moderate':'pill-moderate','Slow-Moving':'pill-slow','Dead Stock':'pill-dead'};
+let scoreMode = 'overall';
+function modeLabelFor(mode){
+  if (mode==='overall') return 'Overall (60% margin / 40% unit of sale)';
+  return {margin:'Margin', volume:'Unit of Sale', profit:'Profit Amount', perunit:'Per Unit Profit'}[mode];
+}
+function workingPrincipleFor(mode){
+  if (mode==='overall') return 'Score = <code>60% × margin</code> + <code>40% × (unit sales ÷ top seller\'s unit sales)</code>. Scheme is left out since it is already folded into margin/profit — counting it again would double-count it.';
+  return {
+    margin:'Picks the brand with the single highest <b>margin %</b> among those currently stocked.',
+    volume:'Picks the brand selling the most <b>units per month</b> — pure demand, regardless of margin.',
+    profit:'Picks the brand generating the most <b>total ₹ profit per month</b> (units × profit/unit).',
+    perunit:'Picks the brand with the highest <b>₹ profit per single unit sold</b>, independent of volume.',
+  }[mode];
+}
+function renderWorkingPrinciple(){
+  document.getElementById('working-principle').innerHTML = `<b>Working principle (${modeLabelFor(scoreMode)}):</b> ${workingPrincipleFor(scoreMode)}`;
+}
+let sizeSort = {key:'units', dir:-1}, sizeFilter='all';
+function renderSizeHeader(){
+  document.getElementById('sizes-title').textContent = currentProduct==='tyre' ? 'Tyre Size Intelligence' : 'Battery Part Intelligence';
+  document.getElementById('size-col-header').textContent = sizeNounLabel();
+  document.getElementById('sizes-sub').textContent = `Movement class over the ${data().numMonths}-month trailing period, by average monthly units: Fast-Moving ≥5/mo · Moderate 2–4.9/mo · Slow-Moving 0.1–1.9/mo · Dead Stock 0.`;
+}
+function refreshSizes(){
+  const all = data().sizes;
+  let list = sizeFilter==='all' ? all : all.filter(s=>s.cls===sizeFilter);
+  list = [...list].sort((a,b)=>{
+    const va=a[sizeSort.key], vb=b[sizeSort.key];
+    if (typeof va==='string') return va.localeCompare(vb)*sizeSort.dir;
+    return (va-vb)*sizeSort.dir;
+  });
+  const sbData = data().sizeBrandData;
+  document.querySelector('#size-table tbody').innerHTML = list.map(s=>{
+    const top = computeTopBrands(sbData[s.size], scoreMode);
+    let cellHTML = '—';
+    if (top.length){
+      cellHTML = top.map((b,i)=>`${i+1}. <b>${b.brand}</b> <span style="color:var(--grey); font-weight:400;">(${fmtPct(b.margin)}, ${fmtNum(b.avgMonthly)}/mo, ${fmtINR(b.profitAmount)}/mo total, ${fmtINR(b.profitPerUnit)}/unit)</span>`).join('<br>');
+    }
+    return `<tr>
+      <td><b>${s.size}</b></td>
+      <td class="num">${s.units}</td>
+      <td class="num">${fmtNum(s.avgMonthly)}</td>
+      <td class="num">${fmtINR(s.revenue)}</td>
+      <td class="num">${fmtINR(s.profit)}</td>
+      <td class="num">${fmtPct(s.margin)}</td>
+      <td><span class="pill ${clsPillMap[s.cls]}">${s.cls}</span></td>
+      <td style="max-width:200px;">${s.currentBrands}</td>
+      <td style="min-width:230px; line-height:1.6;">${cellHTML}</td>
+      <td style="max-width:200px;">${s.models||'—'}</td>
+      <td>${s.focus}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('size-count').textContent = list.length + ' of ' + all.length;
+}
+document.querySelectorAll('#size-filters .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#size-filters .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    sizeFilter = chip.dataset.cls;
+    refreshSizes();
+  });
+});
+document.querySelectorAll('#size-table th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    sizeSort.dir = (sizeSort.key===key) ? -sizeSort.dir : -1;
+    sizeSort.key = key;
+    refreshSizes();
+  });
+});
+document.querySelectorAll('#score-mode-buttons .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#score-mode-buttons .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    scoreMode = chip.dataset.mode;
+    renderWorkingPrinciple();
+    refreshSizes();
+  });
+});
+
+/* ---------------- Purchase plan ---------------- */
+const priorityPillMap = {'High':'pill-high','Medium':'pill-medium','Low':'pill-low','None':'pill-none'};
+let purchaseSort = {key:'recQty', dir:-1}, purchasePriority='all', purchaseSearch='';
+function renderPurchaseHeader(){
+  document.getElementById('purchase-sub').textContent = `One row per company + ${sizeNounLabel().toLowerCase()} combination. Recommended qty = 15% buffer over the ${data().numMonths}-month trailing monthly average.`;
+}
+function refreshPurchase(){
+  let list = data().purchase;
+  if (purchasePriority!=='all') list = list.filter(p=>p.priority===purchasePriority);
+  if (purchaseSearch) list = list.filter(p=>(p.company+' '+p.size).toLowerCase().includes(purchaseSearch));
+  list = [...list].sort((a,b)=>{
+    const va=a[purchaseSort.key], vb=b[purchaseSort.key];
+    if (typeof va==='string') return va.localeCompare(vb)*purchaseSort.dir;
+    return (va-vb)*purchaseSort.dir;
+  });
+  document.querySelector('#purchase-table tbody').innerHTML = list.map(p=>`
+    <tr>
+      <td><b>${p.company}</b></td>
+      <td>${p.size}</td>
+      <td class="num">${fmtINR(p.price)}</td>
+      <td class="num">${fmtPct(p.margin)}</td>
+      <td class="num">${fmtNum(p.avgMonthly)}</td>
+      <td class="num">${fmtINR(p.monthlyProfit)}</td>
+      <td class="num"><b>${p.recQty}</b></td>
+      <td><span class="pill ${priorityPillMap[p.priority]}">${p.priority}</span></td>
+      <td style="max-width:260px;">${p.reason}</td>
+    </tr>`).join('');
+  document.getElementById('purchase-count').textContent = list.length + ' of ' + data().purchase.length;
+}
+document.querySelectorAll('#purchase-filters .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#purchase-filters .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    purchasePriority = chip.dataset.p;
+    refreshPurchase();
+  });
+});
+document.getElementById('purchase-search').addEventListener('input', e=>{ purchaseSearch = e.target.value.toLowerCase(); refreshPurchase(); });
+document.querySelectorAll('#purchase-table th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    purchaseSort.dir = (purchaseSort.key===key) ? -purchaseSort.dir : -1;
+    purchaseSort.key = key;
+    refreshPurchase();
+  });
+});
+
+/* ---------------- Price Watch ---------------- */
+let pwSort = {key:'deltaPct', dir:-1}, pwDir='all', pwSearch='';
+function refreshPriceWatch(){
+  document.getElementById('pw-sub').textContent =
+    `Every SKU where your workbook carries a "Latest Purchase Price" update (currently dated ${latestLabel[currentProduct]}). This is the same comparison your sheet already highlights in yellow (Total Margin columns P & U) — laid out side by side, sortable, with the ₹ and margin swing called out.`;
+  let list = data().priceWatch || [];
+  if (pwDir==='up') list = list.filter(p=>p.deltaPrice>0);
+  if (pwDir==='down') list = list.filter(p=>p.deltaPrice<0);
+  if (pwSearch) list = list.filter(p=>(p.brand+' '+p.size).toLowerCase().includes(pwSearch));
+  list = [...list].sort((a,b)=>{
+    const va=a[pwSort.key], vb=b[pwSort.key];
+    if (typeof va==='string') return va.localeCompare(vb)*pwSort.dir;
+    return (va-vb)*pwSort.dir;
+  });
+  document.querySelector('#pw-table tbody').innerHTML = list.map(p=>{
+    const dirTag = p.deltaPrice>0 ? '<span class="pill pill-up">▲ Cost up</span>' : p.deltaPrice<0 ? '<span class="pill pill-down">▼ Cost down</span>' : '<span class="pill pill-flat">Flat</span>';
+    return `<tr data-key="${skuKey(p)}" style="cursor:pointer;">
+      <td><b>${p.brand}</b></td>
+      <td>${p.size}</td>
+      <td class="num">${fmtINR(p.purchaseOrig)}</td>
+      <td class="num">${fmtINR(p.purchaseLatest)}</td>
+      <td class="num" style="color:${p.deltaPrice>0?'var(--red)':p.deltaPrice<0?'var(--emerald)':'var(--grey)'}">${p.deltaPrice>=0?'+':''}${fmtINR(p.deltaPrice)}</td>
+      <td class="num" style="color:${p.deltaPct>0?'var(--red)':p.deltaPct<0?'var(--emerald)':'var(--grey)'}">${p.deltaPct>=0?'+':''}${fmtPct(p.deltaPct)}</td>
+      <td class="num">${fmtPct(p.marginOrig)}</td>
+      <td class="num">${fmtPct(p.marginLatest)}</td>
+      <td class="num" style="color:${p.marginDeltaPts>=0?'var(--emerald)':'var(--red)'}">${p.marginDeltaPts>=0?'+':''}${(p.marginDeltaPts*100).toFixed(1)}pt</td>
+      <td>${dirTag}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('pw-count').textContent = list.length + ' of ' + (data().priceWatch||[]).length;
+  document.querySelectorAll('#pw-table tbody tr').forEach(tr=>{
+    tr.addEventListener('click', ()=>{
+      trendSelected = tr.dataset.key;
+      const sel = document.getElementById('trend-select');
+      if (sel) sel.value = trendSelected;
+      renderTrendChart();
+    });
+  });
+  // if the search/filter narrows to exactly one item, plot it automatically
+  if (list.length === 1) {
+    trendSelected = skuKey(list[0]);
+    const sel = document.getElementById('trend-select');
+    if (sel) sel.value = trendSelected;
+    renderTrendChart();
+  }
+}
+document.querySelectorAll('#pw-filters .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#pw-filters .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    pwDir = chip.dataset.d;
+    refreshPriceWatch();
+  });
+});
+document.getElementById('pw-search').addEventListener('input', e=>{ pwSearch = e.target.value.toLowerCase(); refreshPriceWatch(); });
+document.querySelectorAll('#pw-table th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key;
+    pwSort.dir = (pwSort.key===key) ? -pwSort.dir : -1;
+    pwSort.key = key;
+    refreshPriceWatch();
+  });
+});
+
+/* ---------------- Trend chart ---------------- */
+let trendSelected = null, trendMetric = 'price';
+function populateTrendSelect(){
+  const sel = document.getElementById('trend-select');
+  const items = (data().priceWatch || []).map(p=>({key:skuKey(p), label:`${p.brand} — ${p.size}`}));
+  // also include SKUs that only have an Original point (no latest yet) so the list is complete
+  const seen = new Set(items.map(i=>i.key));
+  Object.keys(priceHistory[currentProduct]).forEach(key=>{
+    if (!seen.has(key)){
+      const [brand, size] = key.split('|');
+      items.push({key, label:`${brand} — ${size}`});
+      seen.add(key);
+    }
+  });
+  items.sort((a,b)=>a.label.localeCompare(b.label));
+  sel.innerHTML = items.map(i=>`<option value="${i.key}">${i.label}</option>`).join('');
+  if (!items.find(i=>i.key===trendSelected)) trendSelected = items[0] ? items[0].key : null;
+  if (trendSelected) sel.value = trendSelected;
+}
+document.getElementById('trend-select').addEventListener('change', e=>{ trendSelected = e.target.value; renderTrendChart(); });
+document.querySelectorAll('#trend-metric-toggle .ptoggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#trend-metric-toggle .ptoggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    trendMetric = btn.dataset.metric;
+    renderTrendChart();
+  });
+});
+
+function svgLineChart(points, opts){
+  const w = 720, h = 220, padL = 56, padR = 24, padT = 18, padB = 34;
+  const innerW = w - padL - padR, innerH = h - padT - padB;
+  if (!points || points.length === 0){
+    return `<div class="trend-empty">No data for this item yet.</div>`;
+  }
+  if (points.length === 1){
+    return `<div class="trend-empty">Only one price point recorded (${points[0].label}: ${opts.fmt(points[0].value)}). Upload a newer workbook to start a trend.</div>`;
+  }
+  const values = points.map(p=>p.value);
+  let vMin = Math.min(...values), vMax = Math.max(...values);
+  if (vMin === vMax){ vMin -= 1; vMax += 1; }
+  const pad = (vMax - vMin) * 0.15;
+  vMin -= pad; vMax += pad;
+  const x = i => padL + (points.length===1 ? innerW/2 : (i/(points.length-1))*innerW);
+  const y = v => padT + innerH - ((v - vMin)/(vMax - vMin))*innerH;
+
+  const gridLines = [0,0.25,0.5,0.75,1].map(t=>{
+    const yy = padT + innerH*t;
+    const val = vMax - (vMax-vMin)*t;
+    return `<line class="trend-gridline" x1="${padL}" y1="${yy}" x2="${w-padR}" y2="${yy}"/>
+      <text class="trend-axis-text" x="${padL-8}" y="${yy+4}" text-anchor="end">${opts.fmtShort(val)}</text>`;
+  }).join('');
+
+  const linePath = points.map((p,i)=>`${i===0?'M':'L'} ${x(i).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ');
+  const areaPath = linePath + ` L ${x(points.length-1).toFixed(1)} ${(padT+innerH).toFixed(1)} L ${x(0).toFixed(1)} ${(padT+innerH).toFixed(1)} Z`;
+
+  const dots = points.map((p,i)=>{
+    const cx=x(i).toFixed(1), cy=y(p.value).toFixed(1);
+    const above = y(p.value) < padT + innerH/2;
+    return `<circle class="trend-dot" cx="${cx}" cy="${cy}" r="4.5"><title>${p.label}: ${opts.fmt(p.value)}</title></circle>
+      <text class="trend-value-text" x="${cx}" y="${above ? +cy+18 : +cy-10}" text-anchor="middle">${opts.fmt(p.value)}</text>
+      <text class="trend-axis-text" x="${cx}" y="${h-8}" text-anchor="middle">${p.label}</text>`;
+  }).join('');
+
+  return `<svg class="trend-chart-svg" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    ${gridLines}
+    <path class="trend-area" d="${areaPath}"/>
+    <path class="trend-line" d="${linePath}"/>
+    ${dots}
+  </svg>`;
+}
+
+function renderTrendChart(){
+  const wrap = document.getElementById('trend-chart-wrap');
+  if (!trendSelected){ wrap.innerHTML = '<div class="trend-empty">No item selected.</div>'; return; }
+  const hist = priceHistory[currentProduct][trendSelected] || [];
+  const points = hist
+    .filter(h => trendMetric==='price' ? (h.purchasePrice!=null) : (h.margin!=null))
+    .map(h => ({label:h.label, value: trendMetric==='price' ? h.purchasePrice : h.margin}));
+  const opts = trendMetric==='price'
+    ? { fmt: v=>fmtINR(v), fmtShort: v=>'₹'+Math.round(v).toLocaleString('en-IN') }
+    : { fmt: v=>fmtPct(v), fmtShort: v=>fmtPct(v) };
+  wrap.innerHTML = svgLineChart(points, opts);
+}
+
+/* ---------------- Brand Analysis ---------------- */
+let baAxis='size', baSelected='All', baSort={key:'avgMonthly', dir:-1}, baScoreMode='overall';
+function baUniqueValues(axis){
+  const recs = data().skuRecords||[];
+  const key = axis==='size'?'size':'brand';
+  return ['All', ...new Set(recs.map(r=>r[key]))].sort((a,b)=> a==='All'?-1:b==='All'?1:a.localeCompare(b));
+}
+function populateBaSelect(){
+  const sel = document.getElementById('ba-select');
+  const noun = currentProduct==='tyre' ? 'size' : 'part';
+  document.getElementById('ba-select-label').textContent = baAxis==='size' ? `Choose a ${noun} (or All)` : 'Choose a brand (or All)';
+  const opts = baUniqueValues(baAxis);
+  sel.innerHTML = opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if (!opts.includes(baSelected)) baSelected='All';
+  sel.value = baSelected;
+}
+function renderBaWorkingPrinciple(){
+  document.getElementById('ba-working-principle').innerHTML = `<b>Working principle (${modeLabelFor(baScoreMode)}):</b> ${workingPrincipleFor(baScoreMode)}`;
+}
+function baSuggestedTag(size, brand){
+  const list = data().sizeBrandData[size];
+  if (!list) return '';
+  const top2 = computeTopBrands(list, baScoreMode);
+  const rank = top2.findIndex(b=>b.brand===brand);
+  if (rank===0) return '<span class="pill pill-high">★ Best</span>';
+  if (rank===1) return '<span class="pill pill-medium">2nd</span>';
+  return '';
+}
+function modelsForSize(size){
+  const fr = data().fitmentRecords||[];
+  return [...new Set(fr.filter(r=>r.size===size).map(r=>r.model))].sort().join(', ') || '—';
+}
+function renderBaTable(){
+  const recs = data().skuRecords||[];
+  const key = baAxis==='size'?'size':'brand';
+  let list = baSelected==='All' ? recs : recs.filter(r=>r[key]===baSelected);
+  list = [...list].sort((a,b)=>{
+    const va=a[baSort.key], vb=b[baSort.key];
+    if (typeof va==='string') return va.localeCompare(vb)*baSort.dir;
+    return (va-vb)*baSort.dir;
+  });
+  const minSale = list.length ? Math.min(...list.map(r=>r.salePrice)) : null;
+  const minPurch = list.length ? Math.min(...list.map(r=>r.purchasePrice)) : null;
+  document.querySelector('#ba-table tbody').innerHTML = list.map(r=>`
+    <tr>
+      <td><b>${r.brand}</b></td>
+      <td>${r.size}</td>
+      <td style="max-width:200px;">${modelsForSize(r.size)}</td>
+      <td class="num${r.salePrice===minSale?' low-price':''}">${fmtINR(r.salePrice)}</td>
+      <td class="num${r.purchasePrice===minPurch?' low-price':''}">${fmtINR(r.purchasePrice)}</td>
+      <td class="num">${fmtINR(r.profitPerUnit)}</td>
+      <td class="num">${fmtINR(r.profitPerUnitRaw)}</td>
+      <td class="num">${fmtPct(r.margin)}</td>
+      <td class="num">${fmtPct(r.incentiveSlabPct)}</td>
+      <td class="num">${fmtINR(r.incentiveAmt)}</td>
+      <td class="num">${fmtNum(r.avgMonthly)}</td>
+      <td class="num">${fmtINR(r.avgSaleValue)}</td>
+      <td>${baSuggestedTag(r.size, r.brand)}</td>
+    </tr>`).join('');
+  document.getElementById('ba-count').textContent = `${list.length} row${list.length===1?'':'s'} — ${baSelected==='All'?'all':`"${baSelected}"`}`;
+}
+function renderBrandAnalysisTab(){
+  document.getElementById('ba-title').textContent = `${unitLabel()} Brand-wise Analysis`;
+  populateBaSelect();
+  renderBaWorkingPrinciple();
+  renderBaTable();
+}
+document.querySelectorAll('#ba-mode-buttons .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#ba-mode-buttons .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    baScoreMode = chip.dataset.mode;
+    renderBaWorkingPrinciple(); renderBaTable();
+  });
+});
+document.querySelectorAll('#ba-axis-toggle .ptoggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#ba-axis-toggle .ptoggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    baAxis = btn.dataset.axis; baSelected='All';
+    populateBaSelect(); renderBaTable();
+  });
+});
+document.getElementById('ba-select').addEventListener('change', e=>{ baSelected=e.target.value; renderBaTable(); });
+document.querySelectorAll('#ba-table th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key; if(!key) return;
+    baSort.dir = (baSort.key===key)?-baSort.dir:-1; baSort.key=key;
+    renderBaTable();
+  });
+});
+
+/* ---------------- Size x Brand Matrix ---------------- */
+let mxMetric='margin';
+const MX_LABELS = {salePrice:'Sale Price', purchasePrice:'Purchase Rate', profitPerUnit:'Profit / Unit', profitPerUnitRaw:'Profit w/o Discount', margin:'Margin %', incentiveSlabPct:'Incentive Slab %', incentiveAmt:'Incentive Amt/Unit', avgMonthly:'Avg Sale (Units/mo)', avgSaleValue:'Avg Sale Value'};
+function mxFormat(metric, val){
+  if (val===undefined||val===null) return '—';
+  if (metric==='incentiveSlabPct'||metric==='margin') return fmtPct(val);
+  if (metric==='avgMonthly') return fmtNum(val);
+  return fmtINR(val);
+}
+function buildMxGrid(){
+  const recs = data().skuRecords||[];
+  const sizes = [...new Set(recs.map(r=>r.size))].sort();
+  const brands = [...new Set(recs.map(r=>r.brand))].sort();
+  const grid = {};
+  recs.forEach(r=>{ grid[r.size]=grid[r.size]||{}; grid[r.size][r.brand]=r; });
+  return {sizes, brands, grid};
+}
+function mxTopBrands(size, brands, grid, metric){
+  const lowerBetter = metric==='salePrice'||metric==='purchasePrice';
+  const entries = brands.map(b=>{
+    const rec = grid[size] && grid[size][b];
+    if (!rec || rec[metric]==null) return null;
+    return {brand:b, val:rec[metric]};
+  }).filter(Boolean).sort((a,b)=> lowerBetter ? a.val-b.val : b.val-a.val);
+  return entries.slice(0,2).map(e=>e.brand);
+}
+function renderMxTable(){
+  document.getElementById('mx-title').textContent = `${unitLabel()} ${currentProduct==='tyre'?'Size':'Part'} × Brand Matrix`;
+  document.getElementById('mx-sub').textContent = `Every ${currentProduct==='tyre'?'size':'part'} down the rows, every brand across the columns. Click a row to jump to full brand analysis.`;
+  const {sizes, brands, grid} = buildMxGrid();
+  document.getElementById('mx-header-row').innerHTML = `<th>${sizeNounLabel()}</th>` + brands.map(b=>`<th>${b}</th>`).join('');
+  document.querySelector('#mx-table tbody').innerHTML = sizes.map(size=>{
+    const [best, second] = mxTopBrands(size, brands, grid, mxMetric);
+    const cells = brands.map(b=>{
+      const rec = grid[size] && grid[size][b];
+      let cls = rec ? '' : 'mx-cell-empty';
+      if (b===best) cls='mx-cell-best'; else if (b===second) cls='mx-cell-second';
+      const val = rec ? mxFormat(mxMetric, rec[mxMetric]) : '—';
+      return `<td class="${cls}">${val}</td>`;
+    }).join('');
+    const models = modelsForSize(size);
+    return `<tr><td><a href="javascript:void(0)" class="mx-size-link" data-size="${size}"><b>${size}</b></a>${models!=='—'?`<div style="font-size:10px; color:var(--grey); font-weight:400; margin-top:2px; white-space:normal; max-width:150px;">${models}</div>`:''}</td>${cells}</tr>`;
+  }).join('');
+  document.querySelectorAll('.mx-size-link').forEach(link=>{
+    link.addEventListener('click', ()=>{
+      const size = link.dataset.size;
+      jumpToTab('brandanalysis');
+      document.querySelectorAll('#ba-axis-toggle .ptoggle-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelector('#ba-axis-toggle .ptoggle-btn[data-axis="size"]').classList.add('active');
+      baAxis='size'; baSelected=size;
+      populateBaSelect(); renderBaTable();
+    });
+  });
+}
+document.querySelectorAll('#mx-metric-buttons .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#mx-metric-buttons .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    mxMetric = chip.dataset.metric;
+    renderMxTable();
+  });
+});
+
+/* ---------------- Vehicle Fitment ---------------- */
+let ftAxis='model', ftSelected='All', ftSort={key:'avgMonthly', dir:-1}, ftScoreMode='overall';
+function ftUniqueValues(axis){
+  const recs = data().fitmentRecords||[];
+  const key = axis==='model'?'model':(axis==='size'?'size':'brand');
+  return ['All', ...new Set(recs.map(r=>r[key]))].sort((a,b)=> a==='All'?-1:b==='All'?1:a.localeCompare(b));
+}
+function populateFtSelect(){
+  const sel = document.getElementById('ft-select');
+  const noun = currentProduct==='tyre'?'size':'part';
+  const labelMap = {model:'a model', size:`a ${noun}`, brand:'a brand'};
+  document.getElementById('ft-select-label').textContent = `Choose ${labelMap[ftAxis]} (or All)`;
+  document.getElementById('ft-fuel-header').style.display = currentProduct==='battery' ? '' : 'none';
+  const opts = ftUniqueValues(ftAxis);
+  sel.innerHTML = opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if (!opts.includes(ftSelected)) ftSelected='All';
+  sel.value = ftSelected;
+}
+function renderFtWorkingPrinciple(){
+  document.getElementById('ft-working-principle').innerHTML = `<b>Working principle (${modeLabelFor(ftScoreMode)}):</b> ${workingPrincipleFor(ftScoreMode)}`;
+}
+function ftSuggestedTag(size, brand){
+  const list = data().sizeBrandData[size];
+  if (!list) return '';
+  const top2 = computeTopBrands(list, ftScoreMode);
+  const rank = top2.findIndex(b=>b.brand===brand);
+  if (rank===0) return '<span class="pill pill-high">★ Best</span>';
+  if (rank===1) return '<span class="pill pill-medium">2nd</span>';
+  return '';
+}
+function renderFtTable(){
+  const recs = data().fitmentRecords||[];
+  const key = ftAxis==='model'?'model':(ftAxis==='size'?'size':'brand');
+  let list = ftSelected==='All' ? recs : recs.filter(r=>r[key]===ftSelected);
+  list = [...list].sort((a,b)=>{
+    const va=a[ftSort.key], vb=b[ftSort.key];
+    if (typeof va==='string') return va.localeCompare(vb)*ftSort.dir;
+    return ((va||0)-(vb||0))*ftSort.dir;
+  });
+  const isBatt = currentProduct==='battery';
+  const minSale = list.length ? Math.min(...list.map(r=>r.salePrice)) : null;
+  const minPurch = list.length ? Math.min(...list.map(r=>r.purchasePrice)) : null;
+  document.querySelector('#ft-table tbody').innerHTML = list.map(r=>`
+    <tr>
+      <td><b>${r.model}</b></td>
+      <td style="${isBatt?'':'display:none;'}">${r.fuelType||'—'}</td>
+      <td>${r.size}</td>
+      <td>${r.brand}</td>
+      <td class="num${r.salePrice===minSale?' low-price':''}">${fmtINR(r.salePrice)}</td>
+      <td class="num${r.purchasePrice===minPurch?' low-price':''}">${fmtINR(r.purchasePrice)}</td>
+      <td class="num">${fmtINR(r.profitPerUnit)}</td>
+      <td class="num">${fmtINR(r.profitPerUnitRaw)}</td>
+      <td class="num">${fmtPct(r.margin)}</td>
+      <td class="num">${fmtPct(r.incentiveSlabPct)}</td>
+      <td class="num">${fmtINR(r.incentiveAmt)}</td>
+      <td class="num">${fmtNum(r.avgMonthly)}</td>
+      <td>${ftSuggestedTag(r.size, r.brand)}</td>
+    </tr>`).join('');
+  document.getElementById('ft-count').textContent = `${list.length} row${list.length===1?'':'s'} — ${ftSelected==='All'?'all':`"${ftSelected}"`}`;
+}
+function renderFitmentTab(){
+  document.getElementById('ft-title').textContent = `${unitLabel()} Vehicle Fitment`;
+  populateFtSelect();
+  renderFtWorkingPrinciple();
+  renderFtTable();
+}
+document.querySelectorAll('#ft-mode-buttons .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#ft-mode-buttons .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    ftScoreMode = chip.dataset.mode;
+    renderFtWorkingPrinciple(); renderFtTable();
+  });
+});
+document.querySelectorAll('#ft-axis-toggle .ptoggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#ft-axis-toggle .ptoggle-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    ftAxis = btn.dataset.axis; ftSelected='All';
+    populateFtSelect(); renderFtTable();
+  });
+});
+document.getElementById('ft-select').addEventListener('change', e=>{ ftSelected=e.target.value; renderFtTable(); });
+document.querySelectorAll('#ft-table th').forEach(th=>{
+  th.addEventListener('click', ()=>{
+    const key = th.dataset.key; if(!key) return;
+    ftSort.dir = (ftSort.key===key)?-ftSort.dir:-1; ftSort.key=key;
+    renderFtTable();
+  });
+});
+
+/* ---------------- Master render ---------------- */
+function renderEverything(){
+  renderKPIs();
+  renderInsights();
+  renderVerdictGrid();
+  renderCompanyBars();
+  refreshCompanies();
+  renderSizeHeader();
+  renderWorkingPrinciple();
+  refreshSizes();
+  renderPurchaseHeader();
+  refreshPurchase();
+  populateTrendSelect();
+  refreshPriceWatch();
+  renderTrendChart();
+  renderBrandAnalysisTab();
+  renderMxTable();
+  renderFitmentTab();
+}
+renderEverything();
+
+</script>
+</body>
+</html>
